@@ -173,7 +173,7 @@ class itg_admin {
             $addAdmininfo = "INSERT INTO `admin_database_info`(`name`, `email`,`contactno`, `admindatabase`, `databasepassword`, `created_at`, `password`, `admin_type`,`is_active`) 
 		VALUES ('" . $name . "','" . $email . "','" . $contact . "','" . $dbname . "','" . $password . "','" . date('Y-m-d H:i:s') . "','" . $adminpassword . "','0','1')";
             $db->query($addAdmininfo);
-            $url = $url = 'http://52.24.255.248:9090/plugins/userService/userservice?type=add&secret=toLa16o7&username=' . $dbname . '&password=' . $password . '&name=' . $name . '&email=' . $email . '';
+            $url = $url = 'http://52.24.255.248:9090/plugins/userService/userservice?type=add&secret=toLa16o7&username=' . $dbname . '&password=' . $password . '&name=' . $name . '&email=' . $email . '&groups=PersonnelTrackerGroup';
             $this->createOpenfireUser($url);
             $msg = 'admin successfully created';
             $check = 1;
@@ -224,9 +224,17 @@ class itg_admin {
   `timestamp` datetime,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1";
+        $userSessionQuery = "CREATE TABLE IF NOT EXISTS `user_session_details` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `grcid` varchar(255) NOT NULL,
+  `email` varchar(255) NOT NULL,
+  `data` text NOT NULL,
+    PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1";
         $dbUser = new ezSQL_mysql($dbuser, $dbpassword, $dbname, $dbhost);
         $dbUser->query($userDbQuery);
         $dbUser->query($userLocationQuery);
+        $dbUser->query($userSessionQuery);
         unset($dbUser);
     }
 
@@ -556,6 +564,22 @@ class itg_admin {
                 $dbUser = new ezSQL_mysql($dbuser, $dbpassword, $daName[0], $dbhost);
                 $query = 'UPDATE `user_info` SET `is_on_track` =' . $data['tracking-status'] . ',`trackStart` ="' . date("Y-m-d H:i:s", strtotime($data['sdate'])) . '",`trackEnd` = "' . date("Y-m-d H:i:s", strtotime($data['edate'])) . '",`trackInterval` =' . $data['interval'] . ' where id =' . $data['user_id'];
                 $dbUser->query($query);
+                if ($data['save_session'] == 1) {
+                    $selectData = 'SELECT * from `user_tracking_info` WHERE `email`=(SELECT `email` FROM `user_info` WHERE `id`= "' . $data['user_id'] . '" and (`locationtime` >= "' . $data['sdate'] . '" and `locationtime` <= "' . $data['edate'] . '"))';
+                    $locationdata = $dbUser->get_results($selectData, ARRAY_A);
+                    if (!empty($locationdata)) {
+                        foreach ($locationdata as $value) {
+                            $savedLocationData[] = array($value['locationtime'] => array($value['latitude'], $value['longitude']));
+                        }
+                        $userqry = 'SELECT `email`,`uniqueCode` FROM `user_info` WHERE `id`= "' . $data['user_id'] . '"';
+                        $resultset = $dbUser->get_results($userqry, ARRAY_A);
+                        $insertSession = "INSERT INTO `user_session_details` (`grcid`, `email`,`data`) "
+                                . "VALUES ('" . $resultset[0]['uniqueCode'] . "','" . $resultset[0]['email'] . "','" . json_encode($savedLocationData) . "')";
+                        $dbUser->query($insertSession);
+                        $deleteData = 'DELETE  from `user_tracking_info` WHERE `email`=(SELECT `email` FROM `user_info` WHERE `id`= "' . $data['user_id'] . '" and (`locationtime` >= "' . $data['sdate'] . '" and `locationtime` <= "' . $data['edate'] . '"))';
+                        $dbUser->query($deleteData);
+                    }
+                }
                 $result['status'] = TRUE;
                 $result['message'] = 'User details submit successfully!';
             }
@@ -650,6 +674,27 @@ class itg_admin {
         $message .= "</table>";
         $message .= "</body></html>";
         return $message;
+    }
+
+    public function getUserSessionData($id) {
+        global $db;
+        global $dbhost;
+        global $dbpassword;
+        global $dbuser;
+        try {
+            $adminemail = $admin = $_SESSION['admin_login'];
+            $getDbName = "select `admindatabase` from `admin_database_info` WHERE `email` = '" . $adminemail . "'";
+            $daName = $db->get_col($getDbName);
+            $dbUser = new ezSQL_mysql($dbuser, $dbpassword, $daName[0], $dbhost);
+            $query = 'SELECT `uniqueCode` FROM `user_info` WHERE id=' . $id;
+            $result = $dbUser->get_col($query);
+            $getSession = "SELECT * FROM `user_session_details` WHERE `grcid` ='" . $result[0] . "'";
+            $sessionList = $dbUser->get_results($getSession, ARRAY_A);
+            return $sessionList;
+        } catch (Exception $e) {
+            $msg = $e->getMessage();
+            return FALSE;
+        }
     }
 
 }

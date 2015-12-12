@@ -38,8 +38,9 @@ function getUserData($secreatCode) {
                 $data = $result[0];
                 $data['admin_contactNo'] = $result1[0]['contactno'];
                 $data['admin_jid'] = $code[0];
-                $data['status'] = TRUE;
-                echo json_encode($data);
+                $final['data'] = $data;
+                $final['status'] = TRUE;
+                echo json_encode($final);
                 exit;
             } elseif ($result[0]['deviceId'] !== '' && $result[0]['deviceId'] == $deviceId) {
                 $query1 = "SELECT `contactno` FROM `admin_database_info` WHERE `admindatabase`= '$code[0]" . "'";
@@ -47,10 +48,11 @@ function getUserData($secreatCode) {
                 unset($result[0]['password']);
                 unset($result[0]['deviceId']);
                 $data = $result[0];
-                $data['status'] = TRUE;
                 $data['admin_contactNo'] = $result1[0]['contactno'];
                 $data['admin_jid'] = $code[0];
-                echo json_encode($data);
+                $final['data'] = $data;
+                $final['status'] = TRUE;
+                echo json_encode($final);
                 exit;
             } elseif ($result[0]['deviceId'] !== '' && $result[0]['deviceId'] !== $deviceId) {
                 $data['status'] = FALSE;

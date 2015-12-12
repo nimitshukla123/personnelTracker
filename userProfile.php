@@ -1,6 +1,7 @@
 <?php
 include_once 'admin-class.php';
 $admin = new itg_admin();
+$admin->_authenticate();
 if ($_POST) {
     $admin->addUserTrackingDetails($_POST);
 }
@@ -65,7 +66,7 @@ $userTrackData = $admin->getUserTrackingDetalis(base64_decode($_GET['id']));
                     <div class="sidebar-nav navbar-collapse">
                         <ul class="nav" id="side-menu">
                             <li>
-                                <a href="dashboard.php"><i class="fa fa-dashboard fa-fw"></i> Dashboard</a>
+                                <a href="dashboard.php"><i class="fa fa-dashboard fa-fw"></i>Dashboard</a>
                             </li>
                             <?php if ($_SESSION['is_super'] == 1) { ?>
                                 <li>
@@ -112,11 +113,13 @@ $userTrackData = $admin->getUserTrackingDetalis(base64_decode($_GET['id']));
                                                         </table>
                                                     </div>
                                                     <div style="float: right;padding-right: 50px">
-                                                        <h4><a href="javascript:void(0)" onclick="showOptions()">Click here ho change the options</a></h4>
+                                                        <h4><a href="javascript:void(0)" onclick="showOptions()">Start/Stop Tracking</a></h4><br/>
+                                                        <h4><a href="viewSession.php?id=<?php echo $_GET['id'] ?>" >View Saved Session</a></h4>
 
                                                     </div>
                                                 </div>
-                                            </div><div class="row">
+                                            </div>
+                                            <div class="row">
                                                 <?php if ($userTrackData['is_on_track'] == 1) { ?>
                                                     <div class="panel-body" style="padding: 0">
                                                         <h3>Location on Map</h3>
@@ -217,35 +220,42 @@ $userTrackData = $admin->getUserTrackingDetalis(base64_decode($_GET['id']));
                                                 <form class="configure-input" method="post" action="userProfile.php">
                                                     <h3 style="padding-left: 20px">Configure the tracking details</h3>
                                                     <div class="tracking-status">
-                                                        <p>Enable Tracking to fill the below deails : </p>
-                                                        <select id="tracking-status" name="tracking-status">
-                                                            <option value="1" <?php if ($userTrackData['is_on_track'] == 1) echo 'selected'; ?>>Yes</option>
-                                                            <option value="0" <?php if ($userTrackData['is_on_track'] == 0) echo 'selected'; ?>>No</option>
-                                                        </select>
+                                                        <?php if ($userTrackData['is_on_track'] == 1) { ?>
+                                                            <h5 style="color: red">Tracking session is currently active.Press Stop to stop the session. </h5>
+                                                        <?php } ?>
+                                                        <?php if ($userTrackData['is_on_track'] == 0) { ?>
+                                                            <h5 style="color: red">Press Start to start session. </h5>
+                                                        <?php } ?>
+                                                        <button onclick="startSession();" type="button" <?php if ($userTrackData['is_on_track'] == 1) echo 'disabled='; ?> name="Start Tracking">Start Tracking</button>
+                                                        <button type="button" <?php if ($userTrackData['is_on_track'] == 0) echo 'disabled='; ?> onclick="stopSession();" name="Stop Tracking">Stop Tracking</button>
+                                                        <input type="hidden" name="tracking-status" id="tracking-status" value="<?php echo $userTrackData['is_on_track']; ?>"/>
                                                     </div>
-                                                    <div class="confg-panel">
+                                                    <div class="confg-panel tracking-details-form" <?php if ($userTrackData['is_on_track'] == 0) echo 'style="display:none"'; ?>>
                                                         <table style="padding: 10px">
                                                             <tr>
                                                                 <td><p> Enter Start Date/Time:</p></td>
-                                                                <td><input class="startdatetimepicker" type="text" name="sdate" value="<?php echo $userTrackData['trackStart'] ?>"/></td>
+                                                                <td><input <?php if ($userTrackData['is_on_track'] == 1) echo 'readonly'; ?> class="startdatetimepicker" type="text" name="sdate" value="<?php echo $userTrackData['trackStart'] ?>"/></td>
                                                             </tr>
                                                             <tr>
                                                                 <td><p> Enter End Date/Time:</p></td>
-                                                                <td><input class="startdatetimepicker" type="text" value="<?php echo $userTrackData['trackEnd'] ?>" name="edate"/></td>
+                                                                <td><input <?php if ($userTrackData['is_on_track'] == 1) echo 'readonly'; ?> class="startdatetimepicker" type="text" value="<?php echo $userTrackData['trackEnd'] ?>" name="edate"/></td>
                                                             </tr>
                                                             <tr>
                                                                 <td><p> Enter Tracking Interval:</p></td>
-                                                                <td> <input id="interval" type="text" value="<?php echo $userTrackData['trackInterval'] ?>" name="interval"/>
+                                                                <td> <input <?php if ($userTrackData['is_on_track'] == 1) echo 'readonly='; ?> id="interval" type="text" value="<?php echo $userTrackData['trackInterval'] ?>" name="interval"/>
                                                                     <p style="float: right;padding-left: 15px;color:red;font-family: fantasy">(value in minutes)</p>
                                                                 </td>
                                                             </tr>
                                                             <tr>
                                                                 <td colspan="2" style="text-align: center">
                                                                     <input type="hidden" value="<?php echo base64_decode($_GET['id']) ?>" name="user_id"/>
-                                                                    <input type="button" onclick="submitForm();" value="submit"/>                                                                    
+                                                                    <?php if ($userTrackData['is_on_track'] == 0) { ?>
+                                                                        <input type="button" onclick="submitForm();" value="submit"/>                                                                    
+                                                                    <?php } ?>
                                                                 </td>
                                                             </tr>
                                                         </table>
+                                                        <input type="hidden" name="save_session" value=""  id="save-user-session"/>
                                                     </div>
                                                 </form>
                                             </div>
@@ -269,18 +279,26 @@ $userTrackData = $admin->getUserTrackingDetalis(base64_decode($_GET['id']));
 
                     </span><span id="track-msg-err"></span></p>
             </div>
+            <div id="dialog-savesession" title="Action" style="display: none">
+                <p>
+                    <span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 20px 0;">
+
+                    </span><span id="track-msg-sessn">Do you want to save the session?</span></p>
+            </div>
         </div>
         <script type="text/javascript">
             $(document).ready(function () {
-                var today = new Date().format("%Y-%m-%d");
-                $('.startdatetimepicker').datetimepicker({
-                    format: 'Y-m-d H:i:s',
-                    dayOfWeekStart: 1,
-                    lang: 'en',
-                    step: 1,
-                    startDate: today,
-                    minDate: today
-                });
+<?php if ($userTrackData['is_on_track'] == 0) { ?>
+                    var today = new Date().format("%Y-%m-%d");
+                    $('.startdatetimepicker').datetimepicker({
+                        format: 'Y-m-d H:i:s',
+                        dayOfWeekStart: 1,
+                        lang: 'en',
+                        step: 1,
+                        startDate: today,
+                        minDate: today
+                    });
+<?php } ?>
                 ServerManager.connect('http://52.24.255.248:7070', 'personneltracker', '<?php echo $_SESSION['data']['admindatabase'] . '@personneltracker' ?>', '<?php echo $_SESSION['data']['databasepassword'] ?>', 'roster_entry');
             });
 
@@ -293,8 +311,7 @@ $userTrackData = $admin->getUserTrackingDetalis(base64_decode($_GET['id']));
                     data: data,
                     success: function (result) {
                         if (result.status == true) {
-//                            ServerManager.sendChatMessage('<?php echo $userTrackData['uniqueCode'] . '@personneltracker' ?>', JSON.stringify(data));
-                            ServerManager.sendChatMessage('KMNE7_288@personneltracker', JSON.stringify(data));
+                            ServerManager.sendChatMessage('<?php echo $userTrackData['uniqueCode'] . '@personneltracker' ?>', JSON.stringify(data));
                             $('#track-msg-sucss').html(result.message);
                             $("#dialog-confirm").dialog({
                                 resizable: false,
@@ -304,12 +321,14 @@ $userTrackData = $admin->getUserTrackingDetalis(base64_decode($_GET['id']));
                                 buttons: {
                                     "Ok": function () {
                                         $(this).dialog("close");
+                                         window.location.reload();
                                     },
                                 },
                                 open: function (event, ui) {
                                     $('.noOverlayDialog').next('div').css({'opacity': 0.0});
                                 }
                             });
+                           
                         } else {
                             $('#track-msg-err').html(result.message);
                             $("#dialog-error").dialog({
@@ -329,11 +348,42 @@ $userTrackData = $admin->getUserTrackingDetalis(base64_decode($_GET['id']));
                         }
                     }
                 })
+
             }
 
             function showOptions() {
                 $('#user-form-values').show();
                 $(window).scrollTop($('#user-form-values').position().top);
+            }
+
+            function stopSession() {
+                $('#tracking-status').val(0);
+                $("#dialog-savesession").dialog({
+                    resizable: false,
+                    height: 180,
+                    modal: true,
+                    dialogClass: "noOverlayDialog",
+                    buttons: {
+                        "Yes": function () {
+                            $('#save-user-session').val(1);
+                            $(this).dialog("close");
+                            submitForm();
+                        },
+                        "No": function () {
+                            $('#save-user-session').val(0);
+                            $(this).dialog("close");
+                            submitForm();
+                        }
+                    },
+                    open: function (event, ui) {
+                        $('.noOverlayDialog').next('div').css({'opacity': 0.0});
+                    }
+                });
+            }
+
+            function startSession() {
+                 $('#tracking-status').val(1);
+                $('.tracking-details-form').show();
             }
 
         </script>
