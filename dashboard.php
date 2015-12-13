@@ -1,7 +1,9 @@
 <?php
 include_once 'admin-class.php';
 $admin = new itg_admin();
-$admin->_authenticate();
+if(!$_SESSION['admin_login']){
+     header('Location: index.php');
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -34,7 +36,7 @@ $admin->_authenticate();
                         <span class="icon-bar"></span>
                         <span class="icon-bar"></span>
                     </button>
-                    <a class="navbar-brand" href="dashboard.php">Tracker</a>
+                    <a class="navbar-brand" href="dashboard.php">Personnel Tracker</a>
                 </div>
                 <ul class="nav navbar-top-links navbar-right">
 
@@ -43,9 +45,9 @@ $admin->_authenticate();
                             <i class="fa fa-user fa-fw"></i>  <i class="fa fa-caret-down"></i>
                         </a>
                         <ul class="dropdown-menu dropdown-user">
-                            <li><a href="#"><i class="fa fa-user fa-fw"></i> User Profile</a>
+                            <li><a href="adminProfile.php"><i class="fa fa-user fa-fw"></i> User Profile</a>
                             </li>
-                            <li><a href="#"><i class="fa fa-gear fa-fw"></i> Settings</a>
+                            <li><a href="settings.php"><i class="fa fa-gear fa-fw"></i> Settings</a>
                             </li>
                             <li class="divider"></li>
                             <li><a onclick="javascript:window.location.href = 'logout.php'"><i class="fa fa-sign-out fa-fw"></i> Logout</a>
@@ -323,7 +325,7 @@ $admin->_authenticate();
         <script src="dist/js/sb-admin-2.js"></script>
         <?php if ($_SESSION['is_super'] == 0) { ?>
             <script>
-    ServerManager.connect('http://52.24.255.248:7070', 'personneltracker','<?php echo $_SESSION['data']['admindatabase'].'@personneltracker' ?>','<?php echo $_SESSION['data']['databasepassword'] ?>', 'roster_entry');
+                                    ServerManager.connect('http://52.24.255.248:7070', 'personneltracker', '<?php echo $_SESSION['data']['admindatabase'] . '@personneltracker' ?>', '<?php echo $_SESSION['data']['databasepassword'] ?>', 'roster_entry');
             </script>
 
         <?php } ?>

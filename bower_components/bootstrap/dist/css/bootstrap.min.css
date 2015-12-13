@@ -19,3 +19,9 @@
 .confg-panel {
     padding: 20px;
 }
+
+.custom-table{
+    height: 120px;
+    padding: 20px;
+    width: 300px;
+}

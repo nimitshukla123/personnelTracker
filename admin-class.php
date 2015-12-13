@@ -43,22 +43,22 @@ class itg_admin {
     public function __construct() {
         session_start();
 
-        //store the absolute script directory
-        //note that this is not the admin directory
+//store the absolute script directory
+//note that this is not the admin directory
         self::$abs_path = dirname(dirname(__FILE__));
 
-        //initialize the post variable
+//initialize the post variable
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $this->post = $_POST;
             if (get_magic_quotes_gpc()) {
-                //get rid of magic quotes and slashes if present
+//get rid of magic quotes and slashes if present
                 array_walk_recursive($this->post, array($this, 'stripslash_gpc'));
             }
         }
 
-        //initialize the get variable
+//initialize the get variable
         $this->get = $_GET;
-        //decode the url
+//decode the url
         array_walk_recursive($this->get, array($this, 'urldecode'));
     }
 
@@ -103,15 +103,14 @@ class itg_admin {
      * @return void
      */
     public function _authenticate() {
-        //first check whether session is set or not
+//first check whether session is set or not
         if (!isset($_SESSION['admin_login'])) {
-            //check the cookie
+//check the cookie
             if (isset($_COOKIE['username']) && isset($_COOKIE['password'])) {
-                //cookie found, is it really someone from the
+//cookie found, is it really someone from the
                 if ($this->_check_db($_COOKIE['username'], $_COOKIE['password'])) {
                     global $db;
                     $user_row = $db->get_row("SELECT * FROM `admin_database_info` WHERE `email`='" . $db->escape($_COOKIE['username']) . "'");
-                    print_r($user_row);
                     if ($user_row->admin_type == self::isSuperAdmin) {
                         $_SESSION['admin_login'] = $username;
                         $_SESSION['is_super'] = 1;
@@ -121,13 +120,7 @@ class itg_admin {
                     }
                     header("location: dashboard.php");
                     die();
-                } else {
-                    header("location: index.php");
-                    die();
                 }
-            } else {
-                header("location: index.php");
-                die();
             }
         }
     }
@@ -289,36 +282,42 @@ class itg_admin {
      * Check for login in the action file
      */
     public function _login_action() {
-        //insufficient data provided
+//insufficient data provided
         if (!isset($this->post['username']) || $this->post['username'] == '' || !isset($this->post['password']) || $this->post['password'] == '') {
             header("location: index.php");
         }
-        //get the username and password
+//get the username and password
         $username = $this->post['username'];
         $password = md5(($this->post['password']));
-        //check the database for username
+//check the database for username
         if ($this->_check_db($username, $password)) {
-            //ready to login
+//ready to login
             global $db;
             $user_row = $db->get_row("SELECT * FROM `admin_database_info` WHERE `email`='" . $db->escape($username) . "'");
             if ($user_row->admin_type == self::isSuperAdmin) {
                 $_SESSION['admin_login'] = $username;
-                $_SESSION['data'] = (array) $user_row;
+                $userData = (array) $user_row;
+                unset($userData['password']);
+                unset($userData['databasepassword']);
+                $_SESSION['data'] = $userData;
                 $_SESSION['is_super'] = 1;
             } elseif ($user_row->admin_type == 0) {
                 $_SESSION['admin_login'] = $username;
                 $_SESSION['is_super'] = 0;
-                $_SESSION['data'] = (array) $user_row;
+                $userData = (array) $user_row;
+                unset($userData['password']);
+                unset($userData['databasepassword']);
+                $_SESSION['data'] = $userData;
             }
 
-            //check to see if remember, ie if cookie
+//check to see if remember, ie if cookie
             if (isset($this->post['remember'])) {
-                //set the cookies for 1 day, ie, 1*24*60*60 secs
-                //change it to something like 30*24*60*60 to remember user for 30 days
+//set the cookies for 1 day, ie, 1*24*60*60 secs
+//change it to something like 30*24*60*60 to remember user for 30 days
                 setcookie('username', $username, time() + 1 * 24 * 60 * 60);
                 setcookie('password', $password, time() + 1 * 24 * 60 * 60);
             } else {
-                //destroy any previously set cookie
+//destroy any previously set cookie
                 setcookie('username', '', time() - 1 * 24 * 60 * 60);
                 setcookie('password', '', time() - 1 * 24 * 60 * 60);
             }
@@ -343,7 +342,7 @@ class itg_admin {
         global $db;
 
         $user_row = $db->get_row("SELECT * FROM `admin_database_info` WHERE `email`='" . $db->escape($username) . "'");
-        //general return
+//general return
         if (is_object($user_row) && ($user_row->password) == $password)
             return true;
         else
@@ -694,6 +693,35 @@ class itg_admin {
         } catch (Exception $e) {
             $msg = $e->getMessage();
             return FALSE;
+        }
+    }
+
+    public function changeAdminPassword($data) {
+        global $db;
+        global $dbhost;
+        global $dbpassword;
+        global $dbuser;
+        try {
+            $adminemail = $_SESSION['admin_login'];
+            $getPassword = "select `password` from `admin_database_info` WHERE `email` = '" . $adminemail . "'";
+            $oldPassword = $db->get_col($getPassword);
+            if (md5($data['oldPassword']) == $oldPassword[0]) {
+                if ($data['password'] == $data['cpassword']) {
+                    $updatePassword = 'UPDATE `admin_database_info` SET `password` = "' . md5($data['password']) . '" WHERE `email` = "' . $adminemail . '"';
+                    $db->query($updatePassword);
+                    $msg = 'Your password has been updated!';
+                    header("Location: settings.php?msg=" . $msg);
+                } else {
+                    $msg = 'Password miss matched! Try again  !';
+                    header("Location: settings.php?msg=" . $msg);
+                }
+            } else {
+                $msg = 'Your password did not matched.Please try again!';
+                header("Location: settings.php?msg=" . $msg);
+            }
+        } catch (Exception $e) {
+            $msg = $e->getMessage();
+            header("Location: settings.php?msg=" . $msg);
         }
     }
 

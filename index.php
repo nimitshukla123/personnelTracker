@@ -1,3 +1,9 @@
+<?php
+include_once 'admin-class.php';
+$admin = new itg_admin();
+$admin->_authenticate();
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 

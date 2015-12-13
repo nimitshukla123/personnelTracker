@@ -40,7 +40,7 @@ if ($_SESSION['is_super'] == 1) {
                             <span class="icon-bar"></span>
                             <span class="icon-bar"></span>
                         </button>
-                        <a class="navbar-brand" href="dashboard.php">Tracker</a>
+                        <a class="navbar-brand" href="dashboard.php">Personnel Tracker</a>
                     </div>
                     <ul class="nav navbar-top-links navbar-right">
                         <li class="dropdown">
@@ -48,14 +48,14 @@ if ($_SESSION['is_super'] == 1) {
                                 <i class="fa fa-user fa-fw"></i>  <i class="fa fa-caret-down"></i>
                             </a>
                             <ul class="dropdown-menu dropdown-user">
-                                <li><a href="#"><i class="fa fa-user fa-fw"></i> User Profile</a>
-                                </li>
-                                <li><a href="#"><i class="fa fa-gear fa-fw"></i> Settings</a>
-                                </li>
-                                <li class="divider"></li>
-                                <li><a onclick="javascript:window.location.href = 'logout.php'"><i class="fa fa-sign-out fa-fw"></i> Logout</a>
-                                </li>
-                            </ul>
+                            <li><a href="adminProfile.php"><i class="fa fa-user fa-fw"></i> User Profile</a>
+                            </li>
+                            <li><a href="settings.php"><i class="fa fa-gear fa-fw"></i> Settings</a>
+                            </li>
+                            <li class="divider"></li>
+                            <li><a onclick="javascript:window.location.href = 'logout.php'"><i class="fa fa-sign-out fa-fw"></i> Logout</a>
+                            </li>
+                        </ul>
                         </li>
                     </ul>
                     <div class="navbar-default sidebar" role="navigation">
@@ -224,7 +224,7 @@ if ($_SESSION['is_super'] == 1) {
             <meta name = "viewport" content = "width=device-width, initial-scale=1">
             <meta name = "description" content = "">
             <meta name = "author" content = "">
-            <title>Add Users | Tracker</title>
+            <title>Add Users | Personnel Tracker</title>
             <link href = "bower_components/bootstrap/dist/css/bootstrap.min.css" rel = "stylesheet">
             <link href = "bower_components/metisMenu/dist/metisMenu.min.css" rel = "stylesheet">
             <link href = "dist/css/sb-admin-2.css" rel = "stylesheet">
@@ -241,22 +241,21 @@ if ($_SESSION['is_super'] == 1) {
                             <span class="icon-bar"></span>
                             <span class="icon-bar"></span>
                         </button>
-                        <a class="navbar-brand" href="dashboard.php">Tracker</a>
+                        <a class="navbar-brand" href="dashboard.php">Personnel Tracker</a>
                     </div>
                     <ul class="nav navbar-top-links navbar-right">
                         <li class="dropdown">
                             <a class="dropdown-toggle" data-toggle="dropdown" href="#">
                                 <i class="fa fa-user fa-fw"></i>  <i class="fa fa-caret-down"></i>
                             </a>
-                            <ul class="dropdown-menu dropdown-user">
-                                <li><a href="#"><i class="fa fa-user fa-fw"></i> User Profile</a>
-                                </li>
-                                <li><a href="#"><i class="fa fa-gear fa-fw"></i> Settings</a>
-                                </li>
-                                <li class="divider"></li>
-                                <li><a onclick="javascript:window.location.href = 'logout.php'"><i class="fa fa-sign-out fa-fw"></i> Logout</a>
-                                </li>
-                            </ul>
+                                <li><a href="adminProfile.php"><i class="fa fa-user fa-fw"></i> User Profile</a>
+                            </li>
+                            <li><a href="settings.php"><i class="fa fa-gear fa-fw"></i> Settings</a>
+                            </li>
+                            <li class="divider"></li>
+                            <li><a onclick="javascript:window.location.href = 'logout.php'"><i class="fa fa-sign-out fa-fw"></i> Logout</a>
+                            </li>
+                        </ul>
                         </li>
                     </ul>
                     <div class="navbar-default sidebar" role="navigation">
@@ -314,7 +313,7 @@ if ($_SESSION['is_super'] == 1) {
                         </div>
                     </div>
                 </div>
-                <div id="dialog-email" title="Action">
+                <div id="dialog-email" title="Action" >
                     <p>
                         <span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 20px 0;">
 
