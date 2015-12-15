@@ -2,6 +2,9 @@
 include_once 'admin-class.php';
 $admin = new itg_admin();
 $admin->_authenticate();
+if (!$_SESSION['admin_login']) {
+    header('Location: index.php');
+}
 if ($_POST) {
     $admin->addUserTrackingDetails($_POST);
 }
@@ -9,6 +12,9 @@ if (base64_decode($_GET['id']) == '') {
     header('Location: dashboard.php');
 }
 $userTrackData = $admin->getUserTrackingDetalis(base64_decode($_GET['id']));
+if ($userTrackData['is_on_track'] == 1) {
+    $trackedData = $admin->getTrackedData($userTrackData);
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -125,94 +131,73 @@ $userTrackData = $admin->getUserTrackingDetalis(base64_decode($_GET['id']));
                                                         <h3>Location on Map</h3>
                                                         <div id="dvMap" style="width: auto; height: 400px"></div>
                                                         <script type="text/javascript">
-                                                            var markers = [{
-                                                                    "title": '1',
-                                                                    "lat": '30.705911',
-                                                                    "lng": '76.679656',
-                                                                    "description": '1'
-                                                                }, {
-                                                                    "title": '2',
-                                                                    "lat": '30.701713',
-                                                                    "lng": '76.684097',
-                                                                    "description": '2'
-                                                                }, {
-                                                                    "title": '2',
-                                                                    "lat": '30.703291',
-                                                                    "lng": ' 76.701022',
-                                                                    "description": '2'
-                                                                }, {
-                                                                    "title": '2',
-                                                                    "lat": '30.691888',
-                                                                    "lng": ' 76.710721',
-                                                                    "description": '2'
-                                                                }
-
-                                                            ];
-                                                            window.onload = function () {
-                                                                var mapOptions = {
-                                                                    center: new google.maps.LatLng(markers[0].lat, markers[0].lng),
-                                                                    zoom: 10,
-                                                                    mapTypeId: google.maps.MapTypeId.ROADMAP
-                                                                };
-                                                                var map = new google.maps.Map(document.getElementById("dvMap"), mapOptions);
-                                                                var infoWindow = new google.maps.InfoWindow();
-                                                                var lat_lng = new Array();
-                                                                var latlngbounds = new google.maps.LatLngBounds();
-                                                                for (i = 0; i < markers.length; i++) {
-                                                                    var data = markers[i]
-                                                                    var myLatlng = new google.maps.LatLng(data.lat, data.lng);
-                                                                    lat_lng.push(myLatlng);
-                                                                    var marker = new google.maps.Marker({
-                                                                        position: myLatlng,
-                                                                        map: map,
-                                                                        title: data.title
-                                                                    });
-                                                                    latlngbounds.extend(marker.position);
-                                                                    (function (marker, data) {
-                                                                        google.maps.event.addListener(marker, "click", function (e) {
-                                                                            infoWindow.setContent(data.description);
-                                                                            infoWindow.open(map, marker);
-                                                                        });
-                                                                    })(marker, data);
-                                                                }
-                                                                map.setCenter(latlngbounds.getCenter());
-                                                                map.fitBounds(latlngbounds);
-
-                                                                //***********ROUTING****************//
-
-                                                                //Intialize the Path Array
-                                                                var path = new google.maps.MVCArray();
-
-                                                                //Intialize the Direction Service
-                                                                var service = new google.maps.DirectionsService();
-
-                                                                //Set the Path Stroke Color
-                                                                var poly = new google.maps.Polyline({
+    <?php if ($trackedData) { ?>
+                                                                var markers = JSON.parse('<?php echo $trackedData ?>');
+    <?php } ?>
+                                                            var mapOptions = {
+                                                                center: new google.maps.LatLng(markers[0].lat, markers[0].lng),
+                                                                zoom: 5,
+                                                                mapTypeId: google.maps.MapTypeId.ROADMAP
+                                                            };
+                                                            var map = new google.maps.Map(document.getElementById("dvMap"), mapOptions);
+                                                            var infoWindow = new google.maps.InfoWindow();
+                                                            var lat_lng = new Array();
+                                                            var latlngbounds = new google.maps.LatLngBounds();
+                                                            for (i = 0; i < markers.length; i++) {
+                                                                var data = markers[i]
+                                                                var myLatlng = new google.maps.LatLng(data.lat, data.lng);
+                                                                lat_lng.push(myLatlng);
+                                                                var marker = new google.maps.Marker({
+                                                                    position: myLatlng,
                                                                     map: map,
-                                                                    strokeColor: '#4986E7'
+                                                                    title: data.title
                                                                 });
+                                                                latlngbounds.extend(marker.position);
+                                                                (function (marker, data) {
+                                                                    google.maps.event.addListener(marker, "click", function (e) {
+                                                                        infoWindow.setContent(data.description);
+                                                                        infoWindow.open(map, marker);
+                                                                    });
+                                                                })(marker, data);
+                                                            }
+                                                            map.setCenter(latlngbounds.getCenter());
+                                                            map.fitBounds(latlngbounds);
 
-                                                                //Loop and Draw Path Route between the Points on MAP
-                                                                for (var i = 0; i < lat_lng.length; i++) {
-                                                                    if ((i + 1) < lat_lng.length) {
-                                                                        var src = lat_lng[i];
-                                                                        var des = lat_lng[i + 1];
-                                                                        // path.push(src);
-                                                                        poly.setPath(path);
-                                                                        service.route({
-                                                                            origin: src,
-                                                                            destination: des,
-                                                                            travelMode: google.maps.DirectionsTravelMode.DRIVING
-                                                                        }, function (result, status) {
-                                                                            if (status == google.maps.DirectionsStatus.OK) {
-                                                                                for (var i = 0, len = result.routes[0].overview_path.length; i < len; i++) {
-                                                                                    path.push(result.routes[0].overview_path[i]);
-                                                                                }
+                                                            //***********ROUTING****************//
+
+                                                            //Intialize the Path Array
+                                                            var path = new google.maps.MVCArray();
+
+                                                            //Intialize the Direction Service
+                                                            var service = new google.maps.DirectionsService();
+
+                                                            //Set the Path Stroke Color
+                                                            var poly = new google.maps.Polyline({
+                                                                map: map,
+                                                                strokeColor: '#4986E7'
+                                                            });
+
+                                                            //Loop and Draw Path Route between the Points on MAP
+                                                            for (var i = 0; i < lat_lng.length; i++) {
+                                                                if ((i + 1) < lat_lng.length) {
+                                                                    var src = lat_lng[i];
+                                                                    var des = lat_lng[i + 1];
+                                                                    // path.push(src);
+                                                                    poly.setPath(path);
+                                                                    service.route({
+                                                                        origin: src,
+                                                                        destination: des,
+                                                                        travelMode: google.maps.DirectionsTravelMode.DRIVING
+                                                                    }, function (result, status) {
+                                                                        if (status == google.maps.DirectionsStatus.OK) {
+                                                                            for (var i = 0, len = result.routes[0].overview_path.length; i < len; i++) {
+                                                                                path.push(result.routes[0].overview_path[i]);
                                                                             }
-                                                                        });
-                                                                    }
+                                                                        }
+                                                                    });
                                                                 }
-                                                            }</script>
+                                                            }
+                                                        </script>
                                                     </div>
                                                 <?php } ?>
                                             </div>
@@ -321,14 +306,14 @@ $userTrackData = $admin->getUserTrackingDetalis(base64_decode($_GET['id']));
                                 buttons: {
                                     "Ok": function () {
                                         $(this).dialog("close");
-                                         window.location.reload();
+                                        window.location.reload();
                                     },
                                 },
                                 open: function (event, ui) {
                                     $('.noOverlayDialog').next('div').css({'opacity': 0.0});
                                 }
                             });
-                           
+
                         } else {
                             $('#track-msg-err').html(result.message);
                             $("#dialog-error").dialog({
@@ -367,12 +352,14 @@ $userTrackData = $admin->getUserTrackingDetalis(base64_decode($_GET['id']));
                         "Yes": function () {
                             $('#save-user-session').val(1);
                             $(this).dialog("close");
+                            $('.ui-dialog').remove();
                             submitForm();
                         },
                         "No": function () {
                             $('#save-user-session').val(0);
                             $(this).dialog("close");
                             submitForm();
+                             $('.ui-dialog').remove();
                         }
                     },
                     open: function (event, ui) {
@@ -382,7 +369,7 @@ $userTrackData = $admin->getUserTrackingDetalis(base64_decode($_GET['id']));
             }
 
             function startSession() {
-                 $('#tracking-status').val(1);
+                $('#tracking-status').val(1);
                 $('.tracking-details-form').show();
             }
 

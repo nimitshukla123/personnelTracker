@@ -199,10 +199,10 @@ class itg_admin {
   `name` varchar(255) NOT NULL,
   `email` varchar(255) NOT NULL,
   `is_active` tinyint(1) NOT NULL,
-  `created_at` datetime,
+  `created_at` timestamp,
   `is_on_track` tinyint(1) NOT NULL,
-  `trackStart` datetime,
-  `trackEnd` datetime,
+  `trackStart` timestamp,
+  `trackEnd` timestamp,
   `trackInterval` varchar(255) NOT NULL,
   `uniqueCode` varchar(255) NOT NULL,
   `deviceId` varchar(255) NOT NULL,
@@ -213,8 +213,8 @@ class itg_admin {
   `email` varchar(255) NOT NULL,
   `latitude` varchar(255) NOT NULL,
   `longitude` varchar(255) NOT NULL,
-  `locationtime` datetime NOT NULL,
-  `timestamp` datetime,
+  `locationtime` timestamp NOT NULL,
+  `timestamp` timestamp,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1";
         $userSessionQuery = "CREATE TABLE IF NOT EXISTS `user_session_details` (
@@ -298,7 +298,7 @@ class itg_admin {
                 $_SESSION['admin_login'] = $username;
                 $userData = (array) $user_row;
                 unset($userData['password']);
-                unset($userData['databasepassword']);
+//                unset($userData['databasepassword']);
                 $_SESSION['data'] = $userData;
                 $_SESSION['is_super'] = 1;
             } elseif ($user_row->admin_type == 0) {
@@ -306,7 +306,7 @@ class itg_admin {
                 $_SESSION['is_super'] = 0;
                 $userData = (array) $user_row;
                 unset($userData['password']);
-                unset($userData['databasepassword']);
+//                unset($userData['databasepassword']);
                 $_SESSION['data'] = $userData;
             }
 
@@ -474,7 +474,7 @@ class itg_admin {
         $digits = 3;
         $secretCode = $daName[0] . '_' . rand(pow(10, $digits - 1), pow(10, $digits) - 1);
         $userInsert = "INSERT INTO `user_info`(`name`, `email`,`uniqueCode`,`created_at`,`is_on_track`, `is_active`) "
-                . "VALUES ('" . $name . "','" . $email . "','" . $secretCode . "','" . date('Y-m-d H:i:s') . "',0,1)";
+                . "VALUES ('" . $name . "','" . $email . "','" . $secretCode . "','" . (date('Y-m-d H:i:s')) . "',0,1)";
         $dbUser->query($userInsert);
         $check = 0;
         $this->sendEmail($email, NULL, $name, $check, $secretCode);
@@ -561,10 +561,10 @@ class itg_admin {
                 $getDbName = "select `admindatabase` from `admin_database_info` WHERE `email` = '" . $adminemail . "'";
                 $daName = $db->get_col($getDbName);
                 $dbUser = new ezSQL_mysql($dbuser, $dbpassword, $daName[0], $dbhost);
-                $query = 'UPDATE `user_info` SET `is_on_track` =' . $data['tracking-status'] . ',`trackStart` ="' . date("Y-m-d H:i:s", strtotime($data['sdate'])) . '",`trackEnd` = "' . date("Y-m-d H:i:s", strtotime($data['edate'])) . '",`trackInterval` =' . $data['interval'] . ' where id =' . $data['user_id'];
+                $query = 'UPDATE `user_info` SET `is_on_track` =' . $data['tracking-status'] . ',`trackStart` ="' . ($data['sdate']) . '",`trackEnd` = "' . ($data['edate']) . '",`trackInterval` =' . $data['interval'] . ' where id =' . $data['user_id'];
                 $dbUser->query($query);
                 if ($data['save_session'] == 1) {
-                    $selectData = 'SELECT * from `user_tracking_info` WHERE `email`=(SELECT `email` FROM `user_info` WHERE `id`= "' . $data['user_id'] . '" and (`locationtime` >= "' . $data['sdate'] . '" and `locationtime` <= "' . $data['edate'] . '"))';
+                    $selectData = 'SELECT * from `user_tracking_info` WHERE `email`=(SELECT `email` FROM `user_info` WHERE `id`= "' . $data['user_id'] . '" and (`locationtime` >= "' . ($data['sdate']) . '" and `locationtime` <= "' . ($data['edate']) . '"))';
                     $locationdata = $dbUser->get_results($selectData, ARRAY_A);
                     if (!empty($locationdata)) {
                         foreach ($locationdata as $value) {
@@ -575,8 +575,8 @@ class itg_admin {
                         $insertSession = "INSERT INTO `user_session_details` (`grcid`, `email`,`data`) "
                                 . "VALUES ('" . $resultset[0]['uniqueCode'] . "','" . $resultset[0]['email'] . "','" . json_encode($savedLocationData) . "')";
                         $dbUser->query($insertSession);
-                        $deleteData = 'DELETE  from `user_tracking_info` WHERE `email`=(SELECT `email` FROM `user_info` WHERE `id`= "' . $data['user_id'] . '" and (`locationtime` >= "' . $data['sdate'] . '" and `locationtime` <= "' . $data['edate'] . '"))';
-                        $dbUser->query($deleteData);
+//                        $deleteData = 'DELETE  from `user_tracking_info` WHERE `email`=(SELECT `email` FROM `user_info` WHERE `id`= "' . $data['user_id'] . '" and (`locationtime` >= "' . ($data['sdate']) . '" and `locationtime` <= "' . ($data['edate']) . '"))';
+//                        $dbUser->query($deleteData);
                     }
                 }
                 $result['status'] = TRUE;
@@ -722,6 +722,58 @@ class itg_admin {
         } catch (Exception $e) {
             $msg = $e->getMessage();
             header("Location: settings.php?msg=" . $msg);
+        }
+    }
+
+    public function getTrackedData($data) {
+        global $db;
+        global $dbhost;
+        global $dbpassword;
+        global $dbuser;
+        try {
+            $adminemail = $admin = $_SESSION['admin_login'];
+            $getDbName = "select `admindatabase` from `admin_database_info` WHERE `email` = '" . $adminemail . "'";
+            $daName = $db->get_col($getDbName);
+            $dbUser = new ezSQL_mysql($dbuser, $dbpassword, $daName[0], $dbhost);
+            $selectData = 'SELECT * from `user_tracking_info` WHERE (`email`= "' . $data['email'] . '"  and (`locationtime` BETWEEN ' . "'" . $data['trackStart'] . "'" . ' AND  ' . "'" . $data['trackEnd'] . "'" . '))';
+            $result = $dbUser->get_results($selectData, ARRAY_A);
+            if (!empty($result)) {
+                foreach ($result as $value) {
+                    $arrayLatLng[] = array('title' => $value['locationtime'], 'lat' => $value['latitude'], 'lng' => $value['longitude'], 'description' => 'Personnel TRacker');
+                }
+                return json_encode($arrayLatLng);
+            } else {
+                return FALSE;
+            }
+        } catch (Exception $e) {
+            $msg = $e->getMessage();
+            return FALSE;
+        }
+    }
+
+    function getSavedSession($sessionId) {
+        global $db;
+        global $dbhost;
+        global $dbpassword;
+        global $dbuser;
+        try {
+            $adminemail = $admin = $_SESSION['admin_login'];
+            $getDbName = "select `admindatabase` from `admin_database_info` WHERE `email` = '" . $adminemail . "'";
+            $daName = $db->get_col($getDbName);
+            $dbUser = new ezSQL_mysql($dbuser, $dbpassword, $daName[0], $dbhost);
+            $selectData = 'SELECT * from `user_tracking_info` WHERE (`email`= "' . $data['email'] . '"  and (`locationtime` BETWEEN ' . "'" . $data['trackStart'] . "'" . ' AND  ' . "'" . $data['trackEnd'] . "'" . '))';
+            $result = $dbUser->get_results($selectData, ARRAY_A);
+            if (!empty($result)) {
+                foreach ($result as $value) {
+                    $arrayLatLng[] = array('title' => $value['locationtime'], 'lat' => $value['latitude'], 'lng' => $value['longitude'], 'description' => 'Personnel TRacker');
+                }
+                return json_encode($arrayLatLng);
+            } else {
+                return FALSE;
+            }
+        } catch (Exception $e) {
+            $msg = $e->getMessage();
+            return FALSE;
         }
     }
 
