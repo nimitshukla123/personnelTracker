@@ -126,7 +126,7 @@ if ($userTrackData['is_on_track'] == 1) {
                                                 </div>
                                             </div>
                                             <div class="row">
-                                                <?php if ($userTrackData['is_on_track'] == 1) { ?>
+                                                <?php if ($userTrackData['is_on_track'] == 9) { ?>
                                                     <div class="panel-body" style="padding: 0">
                                                         <h3>Location on Map</h3>
                                                         <div id="dvMap" style="width: auto; height: 400px"></div>
@@ -219,11 +219,11 @@ if ($userTrackData['is_on_track'] == 1) {
                                                         <table style="padding: 10px">
                                                             <tr>
                                                                 <td><p> Enter Start Date/Time:</p></td>
-                                                                <td><input <?php if ($userTrackData['is_on_track'] == 1) echo 'readonly'; ?> class="startdatetimepicker" type="text" name="sdate" value="<?php echo $userTrackData['trackStart'] ?>"/></td>
+                                                                <td><input <?php if ($userTrackData['is_on_track'] == 1) echo 'readonly'; ?> class="startdatetimepicker" autocomplete="off" type="text" name="sdate" value="<?php echo $admin->getCurrentTimeFormat($userTrackData['trackStart']) ?>"/></td>
                                                             </tr>
                                                             <tr>
                                                                 <td><p> Enter End Date/Time:</p></td>
-                                                                <td><input <?php if ($userTrackData['is_on_track'] == 1) echo 'readonly'; ?> class="startdatetimepicker" type="text" value="<?php echo $userTrackData['trackEnd'] ?>" name="edate"/></td>
+                                                                <td><input <?php if ($userTrackData['is_on_track'] == 1) echo 'readonly'; ?> class="startdatetimepicker" autocomplete="off" type="text" value="<?php echo $admin->getCurrentTimeFormat($userTrackData['trackEnd']) ?>" name="edate"/></td>
                                                             </tr>
                                                             <tr>
                                                                 <td><p> Enter Tracking Interval:</p></td>
@@ -286,9 +286,28 @@ if ($userTrackData['is_on_track'] == 1) {
 <?php } ?>
                 ServerManager.connect('http://52.24.255.248:7070', 'personneltracker', '<?php echo $_SESSION['data']['admindatabase'] . '@personneltracker' ?>', '<?php echo $_SESSION['data']['databasepassword'] ?>', 'roster_entry');
             });
+            
+            (function ($) {
+    $.fn.serializeFormJSON = function () {
+
+        var o = {};
+        var a = this.serializeArray();
+        $.each(a, function () {
+            if (o[this.name]) {
+                if (!o[this.name].push) {
+                    o[this.name] = [o[this.name]];
+                }
+                o[this.name].push(this.value || '');
+            } else {
+                o[this.name] = this.value || '';
+            }
+        });
+        return o;
+    };
+})($);
 
             function submitForm() {
-                var data = $('.configure-input').serialize();
+                var data = $('.configure-input').serializeFormJSON();
                 $.ajax({
                     url: 'userProfile.php',
                     type: 'post',
@@ -296,7 +315,7 @@ if ($userTrackData['is_on_track'] == 1) {
                     data: data,
                     success: function (result) {
                         if (result.status == true) {
-                            ServerManager.sendChatMessage('<?php echo $userTrackData['uniqueCode'] . '@personneltracker' ?>', JSON.stringify(data));
+                            ServerManager.sendChatMessage('<?php echo $userTrackData['uniqueCode'] . '@personneltracker' ?>', result.data);
                             $('#track-msg-sucss').html(result.message);
                             $("#dialog-confirm").dialog({
                                 resizable: false,

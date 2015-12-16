@@ -552,6 +552,8 @@ class itg_admin {
         global $dbhost;
         global $dbpassword;
         global $dbuser;
+        $data['sdate'] = gmdate('Y-m-d H:i:s', strtotime($data['sdate']));
+        $data['edate'] = gmdate('Y-m-d H:i:s', strtotime($data['edate']));
         try {
             if (!is_numeric($data['interval'])) {
                 $result['status'] = FALSE;
@@ -581,6 +583,7 @@ class itg_admin {
                 }
                 $result['status'] = TRUE;
                 $result['message'] = 'User details submit successfully!';
+                $result['data'] = json_encode($data);
             }
         } catch (Exception $e) {
             $result['message'] = $e->getMessage();
@@ -775,6 +778,14 @@ class itg_admin {
             $msg = $e->getMessage();
             return FALSE;
         }
+    }
+
+    function getCurrentTimeFormat($date) {
+        $utc_date = DateTime::createFromFormat(
+                        'Y-m-d H:i:s', $date, new DateTimeZone('UTC'));
+        $nyc_date = $utc_date;
+        $nyc_date->setTimeZone(new DateTimeZone(date_default_timezone_get()));
+        return $nyc_date->format('Y-m-d H:i:s');
     }
 
 }
