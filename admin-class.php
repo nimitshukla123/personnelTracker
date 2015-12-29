@@ -577,8 +577,8 @@ class itg_admin {
                         $insertSession = "INSERT INTO `user_session_details` (`grcid`, `email`,`data`) "
                                 . "VALUES ('" . $resultset[0]['uniqueCode'] . "','" . $resultset[0]['email'] . "','" . json_encode($savedLocationData) . "')";
                         $dbUser->query($insertSession);
-//                        $deleteData = 'DELETE  from `user_tracking_info` WHERE `email`=(SELECT `email` FROM `user_info` WHERE `id`= "' . $data['user_id'] . '" and (`locationtime` >= "' . ($data['sdate']) . '" and `locationtime` <= "' . ($data['edate']) . '"))';
-//                        $dbUser->query($deleteData);
+                        $deleteData = 'DELETE  from `user_tracking_info` WHERE `email`=(SELECT `email` FROM `user_info` WHERE `id`= "' . $data['user_id'] . '" and (`locationtime` >= "' . ($data['sdate']) . '" and `locationtime` <= "' . ($data['edate']) . '"))';
+                        $dbUser->query($deleteData);
                     }
                 }
                 $result['status'] = TRUE;
@@ -742,7 +742,7 @@ class itg_admin {
             $result = $dbUser->get_results($selectData, ARRAY_A);
             if (!empty($result)) {
                 foreach ($result as $value) {
-                    $arrayLatLng[] = array('title' => $value['locationtime'], 'lat' => $value['latitude'], 'lng' => $value['longitude'], 'description' => 'Personnel TRacker');
+                    $arrayLatLng[] = array($value['locationtime'], $value['latitude'], $value['longitude']);
                 }
                 return json_encode($arrayLatLng);
             } else {
@@ -764,13 +764,19 @@ class itg_admin {
             $getDbName = "select `admindatabase` from `admin_database_info` WHERE `email` = '" . $adminemail . "'";
             $daName = $db->get_col($getDbName);
             $dbUser = new ezSQL_mysql($dbuser, $dbpassword, $daName[0], $dbhost);
-            $selectData = 'SELECT * from `user_tracking_info` WHERE (`email`= "' . $data['email'] . '"  and (`locationtime` BETWEEN ' . "'" . $data['trackStart'] . "'" . ' AND  ' . "'" . $data['trackEnd'] . "'" . '))';
+            $selectData = 'SELECT `data` from `user_session_details` WHERE  `id`="' . $sessionId . '"';
             $result = $dbUser->get_results($selectData, ARRAY_A);
-            if (!empty($result)) {
-                foreach ($result as $value) {
-                    $arrayLatLng[] = array('title' => $value['locationtime'], 'lat' => $value['latitude'], 'lng' => $value['longitude'], 'description' => 'Personnel TRacker');
+            $data = json_decode($result[0]['data'], TRUE);
+            foreach ($data as $value) {
+                foreach ($value as $key1 => $value1) {
+                    $arrayLatLng[] = array( $key1, $value1[0], $value1[1]);
                 }
-                return json_encode($arrayLatLng);
+            }
+
+
+            if (!empty($result)) {
+
+                echo json_encode($arrayLatLng);
             } else {
                 return FALSE;
             }
@@ -781,11 +787,16 @@ class itg_admin {
     }
 
     function getCurrentTimeFormat($date) {
-        $utc_date = DateTime::createFromFormat(
-                        'Y-m-d H:i:s', $date, new DateTimeZone('UTC'));
-        $nyc_date = $utc_date;
-        $nyc_date->setTimeZone(new DateTimeZone(date_default_timezone_get()));
-        return $nyc_date->format('Y-m-d H:i:s');
+
+        if ($date) {
+            $utc_date = DateTime::createFromFormat(
+                            'Y-m-d H:i:s', $date, new DateTimeZone('UTC'));
+            $nyc_date = $utc_date;
+            $nyc_date->setTimeZone(new DateTimeZone(date_default_timezone_get()));
+            return $nyc_date->format('Y-m-d H:i:s');
+        } else {
+            return '';
+        }
     }
 
 }

@@ -32,7 +32,7 @@ $userSessionData = $admin->getUserSessionData(base64_decode($_GET['id']));
         <script src="js/strophe-openfire.js" type="text/javascript"></script>
         <script src="js/ServerManager.js"></script>
         <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
-        <script src="http://maps.google.com/maps/api/js?sensor=false&libraries=drawing&dummy=.js"></script>
+        <script type="text/javascript" src="http://maps.googleapis.com/maps/api/js?sensor=false"></script>
     </head>
     <body>
         <div id="wrapper">
@@ -148,91 +148,74 @@ $userSessionData = $admin->getUserSessionData(base64_decode($_GET['id']));
                 url: 'getSavedSession.php',
                 data: {'sessionId': session_id},
                 type: 'post',
-                success: function () {
-                    var markers = [{
-                            "title": '1',
-                            "lat": '30.705911',
-                            "lng": '76.679656',
-                            "description": '1'
-                        }, {
-                            "title": '2',
-                            "lat": '30.701713',
-                            "lng": '76.684097',
-                            "description": '2'
-                        }, {
-                            "title": '2',
-                            "lat": '30.703291',
-                            "lng": ' 76.701022',
-                            "description": '2'
-                        }, {
-                            "title": '2',
-                            "lat": '30.691888',
-                            "lng": ' 76.710721',
-                            "description": '2'
+                success: function (result) {
+                    var markers = JSON.parse(result);
+                    var map;var center;
+                     for (i = 0; i < markers.length; i++) {
+                        center =  new google.maps.LatLng(markers[i][1], markers[i][2]);
                         }
+                    var mapOptions = {center: center, zoom: 3,
+                        mapTypeId: google.maps.MapTypeId.ROADMAP};
+                    function initialize() {
+                        map = new google.maps.Map(document.getElementById("dvMap"), mapOptions);
 
-                    ];
-                    var mapOptions = {
-                        center: new google.maps.LatLng(markers[0].lat, markers[0].lng),
-                        zoom: 10,
-                        mapTypeId: google.maps.MapTypeId.ROADMAP
-                    };
-                    var map = new google.maps.Map(document.getElementById("dvMap"), mapOptions);
-                    var infoWindow = new google.maps.InfoWindow();
-                    var lat_lng = new Array();
-                    var latlngbounds = new google.maps.LatLngBounds();
-                    for (i = 0; i < markers.length; i++) {
-                        var data = markers[i]
-                        var myLatlng = new google.maps.LatLng(data.lat, data.lng);
-                        lat_lng.push(myLatlng);
-                        var marker = new google.maps.Marker({
-                            position: myLatlng,
-                            map: map,
-                            title: data.title
+                        userCoor = markers;
+                        var userCoorPath = [];
+                        for (i = 0; i < userCoor.length; i++) {
+                            console.log(userCoor[i][1], userCoor[i][2]);
+                            userCoorPath.push(new google.maps.LatLng(userCoor[i][1], userCoor[i][2]));
+                        }
+                        
+                        // Create a new LatLngBounds object
+                                                                var markerBounds = new google.maps.LatLngBounds();
+
+    // Add your points to the LatLngBounds object.
+                                                                for (i = 0; i < markers.length; i++) {
+                                                                    var point = new google.maps.LatLng(markers[i][1], markers[i][2]);
+                                                                    markerBounds.extend(point);
+                                                                }
+
+    // Then you just call the fitBounds method and the Maps widget does all rest.
+                                                                map.fitBounds(markerBounds);
+                        
+
+
+                        var userCoordinate = new google.maps.Polyline({
+                            path: userCoorPath,
+                            strokeColor: "#FF0000",
+                            strokeOpacity: 1,
+                            strokeWeight: 2
                         });
-                        latlngbounds.extend(marker.position);
-                        (function (marker, data) {
-                            google.maps.event.addListener(marker, "click", function (e) {
-                                infoWindow.setContent(data.description);
-                                infoWindow.open(map, marker);
-                            });
-                        })(marker, data);
-                    }
-                    map.setCenter(latlngbounds.getCenter());
-                    map.fitBounds(latlngbounds);
-                    //***********ROUTING****************//
+                        userCoordinate.setMap(map);
 
-                    //Intialize the Path Array
-                    var path = new google.maps.MVCArray();
-                    //Intialize the Direction Service
-                    var service = new google.maps.DirectionsService();
-                    //Set the Path Stroke Color
-                    var poly = new google.maps.Polyline({
-                        map: map,
-                        strokeColor: '#4986E7'
-                    });
-                    //Loop and Draw Path Route between the Points on MAP
-                    for (var i = 0; i < lat_lng.length; i++) {
-                        if ((i + 1) < lat_lng.length) {
-                            var src = lat_lng[i];
-                            var des = lat_lng[i + 1];
-                            // path.push(src);
-                            poly.setPath(path);
-                            service.route({
-                                origin: src,
-                                destination: des,
-                                travelMode: google.maps.DirectionsTravelMode.DRIVING
-                            }, function (result, status) {
-                                if (status == google.maps.DirectionsStatus.OK) {
-                                    for (var i = 0, len = result.routes[0].overview_path.length; i < len; i++) {
-                                        path.push(result.routes[0].overview_path[i]);
-                                    }
-                                }
+                        var infowindow = new google.maps.InfoWindow();
+
+                        var marker, i;
+
+                        for (i = 0; i < userCoor.length; i++) {
+                            marker = new google.maps.Marker({
+                                position: new google.maps.LatLng(userCoor[i][1], userCoor[i][2]),
+                                map: map
                             });
+
+
+                            google.maps.event.addListener(marker, 'click', (function (marker, i) {
+                                return function () {
+                                    infowindow.setContent(userCoor[i][0]);
+                                    infowindow.open(map, marker);
+                                }
+                            })(marker, i));
+
+
+
                         }
+
                     }
+                    initialize();
+                    google.maps.event.addDomListener(window, 'load', initialize);
+
                 }
-            })
+            });
         }
     </script>
 </html>

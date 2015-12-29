@@ -92,19 +92,19 @@ Openfire.Connection.prototype = {
  */
 
 reset: function()
-        {
-        this.streamId = null;
-                this.timedHandlers = [];
-                this.handlers = [];
-                this.removeTimeds = [];
-                this.removeHandlers = [];
-                this.addTimeds = [];
-                this.addHandlers = [];
-                this.authenticated = false;
-                this.disconnecting = false;
-                this.connected = false;
-                this.errors = 0;
-                },
+{
+this.streamId = null;
+        this.timedHandlers = [];
+        this.handlers = [];
+        this.removeTimeds = [];
+        this.removeHandlers = [];
+        this.addTimeds = [];
+        this.addHandlers = [];
+        this.authenticated = false;
+        this.disconnecting = false;
+        this.connected = false;
+        this.errors = 0;
+},
         /** Function: pause
          *  UNUSED with websockets
          */
@@ -690,7 +690,7 @@ reset: function()
                         data:{'values':packet.data},
                         type:'post',
                         success:function(result){
-
+                        reloadMap();
                         }
                 });
                 }
@@ -835,11 +835,11 @@ obj["@attributes"] = {};
         for (var j = 0; j < xml.attributes.length; j++) {
 var attribute = xml.attributes.item(j);
         obj["@attributes"][attribute.nodeName] = attribute.nodeValue;
-}
+        }
 }
 } else if (xml.nodeType == 3) { // text
 obj = xml.nodeValue;
-}
+        }
 
 // do children
 if (xml.hasChildNodes()) {
@@ -848,15 +848,15 @@ var item = xml.childNodes.item(i);
         var nodeName = item.nodeName;
         if (typeof (obj[nodeName]) == "undefined") {
 obj[nodeName] = xmlToJson(item);
-} else {
+        } else {
 if (typeof (obj[nodeName].push) == "undefined") {
 var old = obj[nodeName];
         obj[nodeName] = [];
         obj[nodeName].push(old);
-}
+        }
 obj[nodeName].push(xmlToJson(item));
-}
+        }
 }
 }
 return obj;
-        };
+};
