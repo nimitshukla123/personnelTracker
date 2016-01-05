@@ -12,10 +12,7 @@ if (base64_decode($_GET['id']) == '') {
     header('Location: dashboard.php');
 }
 $userTrackData = $admin->getUserTrackingDetalis(base64_decode($_GET['id']));
-if ($userTrackData['is_on_track'] == 1) {
-    $type = 0;
-    $trackedData = $admin->getTrackedData($userTrackData);
-}
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -40,6 +37,10 @@ if ($userTrackData['is_on_track'] == 1) {
         <script src="js/ServerManager.js"></script>
         <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
         <script type="text/javascript" src="http://maps.googleapis.com/maps/api/js?sensor=false"></script>
+        <script src="bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+        <script src="bower_components/metisMenu/dist/metisMenu.min.js"></script>
+        <script src="bower_components/raphael/raphael-min.js"></script>
+        <script src="bower_components/morrisjs/morris.min.js"></script>
     </head>
     <body>
         <div id="wrapper">
@@ -104,8 +105,11 @@ if ($userTrackData['is_on_track'] == 1) {
                                     <div class="dataTable_wrapper">
                                         <div id="dataTables-example_wrapper" class="dataTables_wrapper form-inline dt-bootstrap no-footer">
                                             <div class="row">
-                                                <h3 style="padding-left: 20px">Users details</h3>
-                                                <div style="padding-left: 30px">
+                                                <h3 style="padding-left: 20px">Users details
+                                                    <span style="float: right;padding-right: 100px" id="online-symbol"></span>
+                                                </h3>
+
+                                                <div style="padding-left: 30px" confg-panel tracking-details-form>
                                                     <div style="float: left">
                                                         <table>
                                                             <tr><td>Name :</td><td><?php echo $userTrackData['name']; ?></td></tr> 
@@ -127,83 +131,13 @@ if ($userTrackData['is_on_track'] == 1) {
                                                 </div>
                                             </div>
                                             <div class="row">
-                                                <?php if ($userTrackData['is_on_track'] == 1 && !empty($trackedData)) { ?>
+                                                <?php if ($userTrackData['is_on_track'] == 1) { ?>
                                                     <div class="panel-body" style="padding: 0">
                                                         <h3>Location on Map</h3>
                                                         <div id="dvMap" style="width: auto; height: 400px"></div>
-                                                        <script type="text/javascript">
-    <?php if ($trackedData) { ?>
-                                                                var markers = JSON.parse('<?php echo $trackedData ?>');
-    <?php } ?>
-                                                            var map;
-                                                            var center;
-                                                            for (i = 0; i < markers.length; i++) {
-                                                                center = new google.maps.LatLng(markers[i][1], markers[i][2]);
-                                                            }
-                                                            var mapOptions = {center: center, zoom: 3,
-                                                                mapTypeId: google.maps.MapTypeId.ROADMAP};
-                                                            function initialize() {
-                                                                map = new google.maps.Map(document.getElementById("dvMap"), mapOptions);
-
-                                                                userCoor = markers;
-                                                                var userCoorPath = [];
-                                                                for (i = 0; i < userCoor.length; i++) {
-                                                                    console.log(userCoor[i][1], userCoor[i][2]);
-                                                                    userCoorPath.push(new google.maps.LatLng(userCoor[i][1], userCoor[i][2]));
-                                                                }
-
-
-
-    // Create a new LatLngBounds object
-                                                                var markerBounds = new google.maps.LatLngBounds();
-
-    // Add your points to the LatLngBounds object.
-                                                                for (i = 0; i < markers.length; i++) {
-                                                                    var point = new google.maps.LatLng(markers[i][1], markers[i][2]);
-                                                                    markerBounds.extend(point);
-                                                                }
-
-    // Then you just call the fitBounds method and the Maps widget does all rest.
-                                                                map.fitBounds(markerBounds);
-
-
-
-                                                                var userCoordinate = new google.maps.Polyline({
-                                                                    path: userCoorPath,
-                                                                    strokeColor: "#FF0000",
-                                                                    strokeOpacity: 1,
-                                                                    strokeWeight: 2
-                                                                });
-                                                                userCoordinate.setMap(map);
-
-                                                                var infowindow = new google.maps.InfoWindow();
-
-                                                                var marker, i;
-
-                                                                for (i = 0; i < userCoor.length; i++) {
-                                                                    marker = new google.maps.Marker({
-                                                                        position: new google.maps.LatLng(userCoor[i][1], userCoor[i][2]),
-                                                                        map: map
-                                                                    });
-
-
-                                                                    google.maps.event.addListener(marker, 'click', (function (marker, i) {
-                                                                        return function () {
-                                                                            infowindow.setContent(userCoor[i][0]);
-                                                                            infowindow.open(map, marker);
-                                                                        }
-                                                                    })(marker, i));
-
-
-
-                                                                }
-
-                                                            }
-                                                            initialize();
-                                                            google.maps.event.addDomListener(window, 'load', initialize);
-                                                        </script>
+                                                       
                                                     </div>
-<?php } ?>
+                                                <?php } ?>
                                             </div>
                                             <div id="user-form-values" class="row" style="display: none;margin-top: 20px">
                                                 <form class="configure-input" method="post" action="userProfile.php">
@@ -214,7 +148,7 @@ if ($userTrackData['is_on_track'] == 1) {
                                                         <?php } ?>
                                                         <?php if ($userTrackData['is_on_track'] == 0) { ?>
                                                             <h5 style="color: red">Press Start to start session. </h5>
-<?php } ?>
+                                                        <?php } ?>
                                                         <button onclick="startSession();" type="button" <?php if ($userTrackData['is_on_track'] == 1) echo 'disabled='; ?> name="Start Tracking">Start Tracking</button>
                                                         <button type="button" <?php if ($userTrackData['is_on_track'] == 0) echo 'disabled=""'; ?> onclick="stopSession();" name="Stop Tracking">Stop Tracking</button>
                                                         <input type="hidden" name="tracking-status" id="tracking-status" value="<?php echo $userTrackData['is_on_track']; ?>"/>
@@ -240,7 +174,7 @@ if ($userTrackData['is_on_track'] == 1) {
                                                                     <input type="hidden" value="<?php echo base64_decode($_GET['id']) ?>" name="user_id"/>
                                                                     <?php if ($userTrackData['is_on_track'] == 0) { ?>
                                                                         <input type="button" onclick="submitForm();" value="submit"/>                                                                    
-<?php } ?>
+                                                                    <?php } ?>
                                                                 </td>
                                                             </tr>
                                                         </table>
@@ -276,7 +210,25 @@ if ($userTrackData['is_on_track'] == 1) {
             </div>
         </div>
         <script type="text/javascript">
+            var map;
+            
+             function mapData(){           
+    var data1= [];
+                data1['email'] = '<?php echo $userTrackData['email']?>';
+                data1['trackStart'] = '<?php echo $userTrackData['trackStart']?>';
+                data1['trackEnd'] = '<?php echo $userTrackData['trackEnd']?>';
+                $.ajax({
+                    url:'getMap.php',
+                    type: 'post',
+                    dataType: 'json',
+                    data: {email:data1['email'],trackStart:data1['trackStart'],trackEnd:data1['trackEnd']},
+                    success: function (result) {
+                        generatemap(result);
+                    }
+                });
+            }
             $(document).ready(function () {
+                
 <?php if ($userTrackData['is_on_track'] == 0) { ?>
                     var today = new Date().format("%Y-%m-%d");
                     $('.startdatetimepicker').datetimepicker({
@@ -289,6 +241,9 @@ if ($userTrackData['is_on_track'] == 1) {
                     });
 <?php } ?>
                 ServerManager.connect('http://52.24.255.248:7070', 'personneltracker', '<?php echo $_SESSION['data']['admindatabase'] . '@personneltracker' ?>', '<?php echo $_SESSION['data']['databasepassword'] ?>', 'roster_entry');
+   
+            mapData();
+                 map = new google.maps.Map(document.getElementById("dvMap"));
             });
 
             (function ($) {
@@ -397,7 +352,85 @@ if ($userTrackData['is_on_track'] == 1) {
             }
 
             function reloadMap() {
-                window.location.reload();
+                console.log('Request Recieved');
+                mapData();
+            }
+
+            function userStatus(user, stat) {
+                var userId = '<?php echo strtolower($userTrackData['uniqueCode']) . '@personneltracker' ?>';
+                if (userId === user) {
+                    if (stat == 'Online') {
+                        $('#online-symbol').html('<img alt="icon" src="http://netlab.cz/status/ramb/online.png">');
+                    } else {
+                        $('#online-symbol').html(stat);
+                    }
+                }
+            }
+
+            function generatemap(data) {
+            var markers = data;
+                var center;
+                for (i = 0; i < markers.length; i++) {
+                    center = new google.maps.LatLng(markers[i][1], markers[i][2]);
+                }
+                var mapOptions = {center: center, zoom: 3,
+                    mapTypeId: google.maps.MapTypeId.ROADMAP};
+                map.set(mapOptions);
+
+                userCoor = markers;
+                var userCoorPath = [];
+                for (i = 0; i < userCoor.length; i++) {
+                    console.log(userCoor[i][1], userCoor[i][2]);
+                    userCoorPath.push(new google.maps.LatLng(userCoor[i][1], userCoor[i][2]));
+                }
+
+
+
+                // Create a new LatLngBounds object
+                var markerBounds = new google.maps.LatLngBounds();
+
+                // Add your points to the LatLngBounds object.
+                for (i = 0; i < markers.length; i++) {
+                    var point = new google.maps.LatLng(markers[i][1], markers[i][2]);
+                    markerBounds.extend(point);
+                }
+
+                // Then you just call the fitBounds method and the Maps widget does all rest.
+                map.fitBounds(markerBounds);
+
+
+
+                var userCoordinate = new google.maps.Polyline({
+                    path: userCoorPath,
+                    strokeColor: "#FF0000",
+                    strokeOpacity: 1,
+                    strokeWeight: 2
+                });
+                userCoordinate.setMap(map);
+
+                var infowindow = new google.maps.InfoWindow();
+
+                var marker, i;
+
+                for (i = 0; i < userCoor.length; i++) {
+                    marker = new google.maps.Marker({
+                        position: new google.maps.LatLng(userCoor[i][1], userCoor[i][2]),
+                        map: map
+                    });
+
+
+                    google.maps.event.addListener(marker, 'click', (function (marker, i) {
+                        return function () {
+                            infowindow.setContent(userCoor[i][0]);
+                            infowindow.open(map, marker);
+                        }
+                    })(marker, i));
+
+
+
+                }
+
+
             }
 
         </script>

@@ -744,7 +744,7 @@ class itg_admin {
                 foreach ($result as $value) {
                     $arrayLatLng[] = array($value['locationtime'], $value['latitude'], $value['longitude']);
                 }
-                return json_encode($arrayLatLng);
+                echo json_encode($arrayLatLng);exit;
             } else {
                 return FALSE;
             }
@@ -769,7 +769,7 @@ class itg_admin {
             $data = json_decode($result[0]['data'], TRUE);
             foreach ($data as $value) {
                 foreach ($value as $key1 => $value1) {
-                    $arrayLatLng[] = array( $key1, $value1[0], $value1[1]);
+                    $arrayLatLng[] = array($key1, $value1[0], $value1[1]);
                 }
             }
 
@@ -796,6 +796,78 @@ class itg_admin {
             return $nyc_date->format('Y-m-d H:i:s');
         } else {
             return '';
+        }
+    }
+
+    function saveTicket($name, $email, $ticket) {
+        global $db;
+        global $dbhost;
+        global $dbpassword;
+        global $dbuser;
+        try {
+            $query = 'INSERT INTO `supportTicket` (`name`,`email`,`ticket`) VALUES ("' . $name . '","' . $email . '","' . $ticket . '")';
+            if ($db->query($query)) {
+                $msg = 'Your ticket has been submitted!';
+                header("Location: addTickets.php?msg=" . $msg);
+                exit(0);
+            } else {
+                $msg = 'Some error occurred! Try again  !';
+                header("Location: addTickets.php?msg=" . $msg);
+                exit(0);
+            }
+        } catch (Exception $e) {
+            header("Location: addTickets.php?msg=" . $e->getMessage());
+            exit(0);
+        }
+    }
+    
+    function getTotalTicketCounts(){
+        global $db;
+        global $dbhost;
+        global $dbpassword;
+        global $dbuser;
+        try {
+            $query = 'SELECT count(*) FROM `supportTicket` WHERE `status` = 0';
+            $res = $db->get_results($query,ARRAY_A);
+                       return $res[0]['count(*)'];
+        } catch (Exception $e) {
+            
+        }
+    }
+    
+    function getTicketInfo(){
+        global $db;
+        global $dbhost;
+        global $dbpassword;
+        global $dbuser;
+        try {
+            $query = 'SELECT * FROM `supportTicket` WHERE `status` = 0';
+            $res = $db->get_results($query,ARRAY_A);
+            return $res;
+        } catch (Exception $e) {
+            
+        }
+    }
+    
+    function closeTicket($id){
+         global $db;
+        global $dbhost;
+        global $dbpassword;
+        global $dbuser;
+        try {
+            $query = 'UPDATE `supportTicket` SET `status` = 1 WHERE id='.$id;
+            if ($db->query($query)) {
+                $msg = 'Ticket has been updated!';
+                header("Location: viewTickets.php?msg=" . $msg);
+                exit(0);
+            } else {
+                $msg = 'Some error occurred! Try again  !';
+                header("Location: viewTickets.php?msg=" . $msg);
+                exit(0);
+            }
+        } catch (Exception $e) {
+            header("Location: viewTickets.php?msg=" . $e->getMessage());
+            exit(0);
         }
     }
 

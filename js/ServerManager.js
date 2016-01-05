@@ -164,49 +164,11 @@ var ServerManager = {
         var ptype = $(presence).attr('type');
         var from = $(presence).attr('from');
         var presenceJid = Strophe.getBareJidFromJid(from);
-//        var jid_id = presenceJid.replace(/@/g, "-").replace(/\./g, "-");
-//        var myjidId = myJid.replace(/@/g, "-").replace(/\./g, "-");
-//        var div = document.getElementsByClassName('right');
-//        var ulVar = $(div).find('ul');
         var statusText = $(presence).find('status').text();
         var showText = $(presence).find('show').text();
-        //    console.log("Type:" + ptype + " | Status:" + statusText + "|show:" + showText);
-//        if (ptype == "subscribe" && XMPPConnection.onAddUser(presenceJid)) {
-//            var pres = $pres({to: presenceJid, type: 'subscribe'});
-//
-//            // console.log(pres);
-//            XMPPConnection.connection.send(pres);
-//        } else if (ptype == "unsubscribe") {
-//            var username = from.split("@");
-//            var iq = $iq({type: 'set'})
-//                    .c('query', {xmlns: 'jabber:iq:roster'})
-//                    .c('item', {jid: from, name: username[0], subscription: 'remove', ask: "subscribe"});
-//            XMPPConnection.connection.sendIQ(iq);
-//
-//        } else {
-//
-//            XMPPConnection.onPresence({myjid: myJid, jid: presenceJid, type: ptype, status: statusText, show: showText});
-//        }
-//        var liVar = document.getElementById(jid_id);
-//        if (liVar !== null) {
-//            if (jid_id !== myjidId) {
-//                var status = liVar.getElementsByTagName('img');
-//                var statusImage = status[0];
-//                if (ptype == null) {
-//                    var statusLineP = liVar.getElementsByTagName('p');
-//                    $(statusLineP[1]).text(statusText);
-//                    if (statusText !== 'Online')
-//                        $(statusImage).attr('src', 'image/yellow.png');
-//                    else
-//                        $(statusImage).attr('src', 'image/green.png');
-//                }
-//                else if (ptype === 'unavailable')
-//                    $(statusImage).attr('src', 'image/gray.png');
-//                else
-//                    $(statusImage).attr('src', 'image/yellow.png');
-//            }
-//        }
-
+        console.log(presenceJid);
+        console.log(statusText);
+userStatus(presenceJid,statusText);
         return true;
     },
     on_message: function(message) {

@@ -1,8 +1,8 @@
 <?php
 include_once 'admin-class.php';
 $admin = new itg_admin();
-if(!$_SESSION['admin_login']){
-     header('Location: index.php');
+if (!$_SESSION['admin_login']) {
+    header('Location: index.php');
 }
 ?>
 <!DOCTYPE html>
@@ -99,7 +99,7 @@ if(!$_SESSION['admin_login']){
                                     <?php } elseif ($_SESSION['is_super'] == 0) { ?>
                                         <div class="col-xs-9 text-right">
                                             <div class="huge"><?php echo $admin->getCountUsers(); ?></div>
-                                            <div>Total Users!</div>
+                                            <div><a style="color: white" href="users.php" >Total Users!</a></div>
                                         </div>
                                     <?php } ?>
                                 </div>
@@ -177,18 +177,33 @@ if(!$_SESSION['admin_login']){
                                         <i class="fa fa-support fa-5x"></i>
                                     </div>
                                     <div class="col-xs-9 text-right">
-                                        <div class="huge">13</div>
+                                        <?php if ($_SESSION['is_super'] == 1) { ?>
+                                            <div class="huge"><?php echo $admin->getTotalTicketCounts()?></div>
+                                        <?php } else{ ?>
+                                            <div class="huge"></div>
+                                        <?php }?>
                                         <div>Support Tickets!</div>
                                     </div>
-                                </div>
+                                </div> 
                             </div>
-                            <a href="#">
-                                <div class="panel-footer">
-                                    <span class="pull-left">View Details</span>
-                                    <span class="pull-right"><i class="fa fa-arrow-circle-right"></i></span>
-                                    <div class="clearfix"></div>
-                                </div>
-                            </a>
+                            <?php if ($_SESSION['is_super'] == 1) { ?>
+                                <a href="viewTickets.php">
+                                    <div class="panel-footer">
+                                        <span class="pull-left">View Details</span>
+                                        <span class="pull-right"><i class="fa fa-arrow-circle-right"></i></span>
+                                        <div class="clearfix"></div>
+                                    </div>
+                                </a>
+                            <?php } elseif ($_SESSION['is_super'] == 0) { ?>
+                                <a href="addTickets.php">
+                                    <div class="panel-footer">
+                                        <span class="pull-left">Add Ticket</span>
+                                        <span class="pull-right"><i class="fa fa-arrow-circle-right"></i></span>
+                                        <div class="clearfix"></div>
+                                    </div>
+                                </a>
+                            <?php } ?>
+
                         </div>
                     </div>
                 </div>
@@ -325,7 +340,7 @@ if(!$_SESSION['admin_login']){
         <script src="dist/js/sb-admin-2.js"></script>
         <?php if ($_SESSION['is_super'] == 0) { ?>
             <script>
-                                    ServerManager.connect('http://52.24.255.248:7070', 'personneltracker', '<?php echo $_SESSION['data']['admindatabase'] . '@personneltracker' ?>', '<?php echo $_SESSION['data']['databasepassword'] ?>', 'roster_entry');
+                                ServerManager.connect('http://52.24.255.248:7070', 'personneltracker', '<?php echo $_SESSION['data']['admindatabase'] . '@personneltracker' ?>', '<?php echo $_SESSION['data']['databasepassword'] ?>', 'roster_entry');
             </script>
 
         <?php } ?>

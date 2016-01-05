@@ -3,16 +3,15 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/E:/xampp/htdocs/personnelTracker/viewSession.php</file>
+            <file>file:/E:/xampp/htdocs/personnelTracker/js/strophe-openfire.js</file>
             <file>file:/E:/xampp/htdocs/personnelTracker/dashboard.php</file>
-            <file>file:/E:/xampp/htdocs/personnelTracker/getUserDetailsXmpp.php</file>
-            <file>file:/E:/xampp/htdocs/personnelTracker/settings.php</file>
-            <file>file:/E:/xampp/htdocs/personnelTracker/index.php</file>
-            <file>file:/E:/xampp/htdocs/personnelTracker/db.php</file>
-            <file>file:/E:/xampp/htdocs/personnelTracker/getSavedSession.php</file>
-            <file>file:/E:/xampp/htdocs/personnelTracker/addAdminUsers.php</file>
+            <file>file:/E:/xampp/htdocs/personnelTracker/viewTickets.php</file>
+            <file>file:/E:/xampp/htdocs/personnelTracker/addTickets.php</file>
+            <file>file:/E:/xampp/htdocs/personnelTracker/js/ServerManager.js</file>
+            <file>file:/E:/xampp/htdocs/personnelTracker/js/strophe.js</file>
             <file>file:/E:/xampp/htdocs/personnelTracker/userProfile.php</file>
             <file>file:/E:/xampp/htdocs/personnelTracker/admin-class.php</file>
+            <file>file:/E:/xampp/htdocs/personnelTracker/getMap.php</file>
         </group>
     </open-files>
 </project-private>
