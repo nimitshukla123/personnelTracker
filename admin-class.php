@@ -438,7 +438,7 @@ class itg_admin {
         $getDbName = "select `admindatabase` from `admin_database_info` WHERE `email` = '" . $adminemail . "'";
         $daName = $db->get_col($getDbName);
         $dbUser = new ezSQL_mysql($dbuser, $dbpassword, $daName[0], $dbhost);
-        $count = "SELECT * FROM `user_info` WHERE 1";
+        $count = "SELECT * FROM `user_info` ORDER BY id DESC LIMIT 3 ";
         $result = $dbUser->get_results($count, ARRAY_A);
         return $result;
     }

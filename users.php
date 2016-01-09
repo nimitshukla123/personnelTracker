@@ -24,10 +24,20 @@ if ($_GET['op'] == "delete") {
         <meta name="description" content="">
         <meta name="author" content="">
         <title>Tracker | Users</title>
-        <link href="bower_components/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+       <link href="bower_components/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
         <link href="bower_components/metisMenu/dist/metisMenu.min.css" rel="stylesheet">
         <link href="dist/css/sb-admin-2.css" rel="stylesheet">
+        <link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
         <link href="bower_components/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+        <script src="bower_components/datePicker/jquery.js"></script>
+        <script src="js/strophe.js" type="text/javascript"></script>
+        <script src="js/strophe-openfire.js" type="text/javascript"></script>
+        <script src="js/ServerManager.js"></script>
+        <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+        <script src="bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+        <script src="bower_components/metisMenu/dist/metisMenu.min.js"></script>
+        <script src="bower_components/raphael/raphael-min.js"></script>
+        <script src="bower_components/morrisjs/morris.min.js"></script>
     </head>
     <body>
         <div id="wrapper">
@@ -94,61 +104,37 @@ if ($_GET['op'] == "delete") {
                                 <div class="panel-body">
                                     <div class="dataTable_wrapper">
                                         <div id="dataTables-example_wrapper" class="dataTables_wrapper form-inline dt-bootstrap no-footer">
-<!--                                            <div class="row">
-                                                <div class="col-sm-6">
-                                                    <div class="dataTables_length" id="dataTables-example_length">
-                                                        <label>Show <select name="dataTables-example_length" aria-controls="dataTables-example" class="form-control input-sm">
-                                                                <option value="10">10</option>
-                                                                <option value="25">25</option>
-                                                                <option value="50">50</option><option value="100">100</option>
-                                                            </select> entries</label></div></div><div class="col-sm-6">
-                                                </div>
-                                            </div>-->
                                             <div class="row">
                                                 <div class="col-sm-12">
                                                     <table id="dataTables-example" class="table table-striped table-bordered table-hover dataTable no-footer" role="grid" aria-describedby="dataTables-example_info">
                                                         <thead>
                                                             <tr role="row">
-                                                                <th class="sorting_asc" tabindex="0" aria-controls="dataTables-example" rowspan="1" colspan="1" style="width: 175px;" aria-sort="ascending" aria-label="Rendering engine: activate to sort column descending">Name</th>
-                                                                <th class="sorting" tabindex="0" aria-controls="dataTables-example" rowspan="1" colspan="1" style="width: 203px;" aria-label="Browser: activate to sort column ascending">Email</th>
-                                                                <th class="sorting" tabindex="0" aria-controls="dataTables-example" rowspan="1" colspan="1" style="width: 150px;" aria-label="Engine version: activate to sort column ascending">Registration Date</th>
-                                                                <?php if ($_SESSION['is_super'] == 0) { ?> <th class="sorting" tabindex="0" aria-controls="dataTables-example" rowspan="1" colspan="1" style="width: 108px;" aria-label="CSS grade: activate to sort column ascending">Operation</th></tr><?php } ?>
-                                                        </thead>
+                                                                <th  tabindex="0" aria-controls="dataTables-example" rowspan="1" colspan="1" style="width: 175px;" aria-sort="ascending" aria-label="Rendering engine: activate to sort column descending">Name</th>
+                                                                <th  tabindex="0" aria-controls="dataTables-example" rowspan="1" colspan="1" style="width: 203px;" aria-label="Browser: activate to sort column ascending">Email</th>
+                                                                <th  tabindex="0" aria-controls="dataTables-example" rowspan="1" colspan="1" style="width: 150px;" aria-label="Engine version: activate to sort column ascending">Registration Date</th>
+                                                                <?php if ($_SESSION['is_super'] == 0) { ?> <th  tabindex="0" aria-controls="dataTables-example" rowspan="1" colspan="1" style="width: 108px;" aria-label="CSS grade: activate to sort column ascending">Operation</th><?php } ?>
+                                                                <th  tabindex="0" aria-controls="dataTables-example" rowspan="1" colspan="1" style="width: 100px;" aria-label="Engine version: activate to sort column ascending">Current Status</th></tr>
+                                                        </thead> 
                                                         <tbody>
                                                             <?php foreach ($adminUser as $value) { ?>
                                                                 <tr class="gradeA odd" role="row">
                                                                     <td class="sorting_1"><?php echo $value['name']; ?></td>
                                                                     <td><?php echo $value['email']; ?></td>
-                                                                        <?php $date = date_create($value['created_at']);?>
+                                                                    <?php $date = date_create($value['created_at']); ?>
                                                                     <td class="center"><?php echo date_format($date, 'jS F Y'); ?></td>
                                                                     <?php if ($_SESSION['is_super'] == 0) { ?>   <td class="center">
                                                                             <a href="users.php?op=delete&id=<?php echo $value['id']; ?>">Delete</a> | 
                                                                             <a href="userProfile.php?id=<?php echo base64_encode($value['id']); ?>">View</a>
                                                                         </td><?php } ?>
+                                                                    <td>
+                                                                        <span class="show-user-status" id="<?php echo $value['uniqueCode'] ?>">Offline</span>
+                                                                    </td>
                                                                 </tr>                                                                
                                                             <?php } ?>
                                                         </tbody>
-                                                    </table></div></div>
-<!--                                            <div class="row">
-                                                <div class="col-sm-6">
-                                                    <div class="dataTables_info" id="dataTables-example_info" role="status" aria-live="polite">Showing 1 to 10 of 57 entries</div>
-
+                                                    </table>
                                                 </div>
-                                                <div class="col-sm-6">
-                                                    <div class="dataTables_paginate paging_simple_numbers" id="dataTables-example_paginate">
-                                                        <ul class="pagination">
-                                                            <li class="paginate_button previous disabled" aria-controls="dataTables-example" tabindex="0" id="dataTables-example_previous">
-                                                                <a href="#">Previous</a></li>
-                                                            <li class="paginate_button active" aria-controls="dataTables-example" tabindex="0">
-                                                                <a href="#">1</a></li><li class="paginate_button " aria-controls="dataTables-example" tabindex="0">
-                                                                <a href="#">2</a></li><li class="paginate_button " aria-controls="dataTables-example" tabindex="0">
-                                                                <a href="#">3</a></li><li class="paginate_button " aria-controls="dataTables-example" tabindex="0">
-                                                                <a href="#">4</a></li><li class="paginate_button " aria-controls="dataTables-example" tabindex="0">
-                                                                <a href="#">5</a></li><li class="paginate_button " aria-controls="dataTables-example" tabindex="0">
-                                                                <a href="#">6</a></li><li class="paginate_button next" aria-controls="dataTables-example" tabindex="0" id="dataTables-example_next">
-                                                                <a href="#">Next</a></li></ul></div>
-                                                </div>
-                                            </div>-->
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -158,9 +144,16 @@ if ($_GET['op'] == "delete") {
                 </div>
             </div>
         </div>
-        <script src="bower_components/jquery/dist/jquery.min.js"></script>
-        <script src="bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
-        <script src="bower_components/metisMenu/dist/metisMenu.min.js"></script>
-        <script src="dist/js/sb-admin-2.js"></script>
+        <script type="text/javascript">
+              ServerManager.connect('http://52.24.255.248:7070', 'personneltracker', '<?php echo $_SESSION['data']['admindatabase'] . '@personneltracker' ?>', '<?php echo $_SESSION['data']['databasepassword'] ?>', 'roster_entry');
+            function userStatus(uid,status){console.log('hii');
+                var user = uid.substr(0,9).toUpperCase();
+                $('.show-user-status').each(function(){
+                if($(this).attr('id') == user){
+                    $(this).html(status);
+                }
+            })
+            }
+        </script>
     </body>
 </html>

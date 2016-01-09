@@ -12,7 +12,6 @@ if (base64_decode($_GET['id']) == '') {
     header('Location: dashboard.php');
 }
 $userTrackData = $admin->getUserTrackingDetalis(base64_decode($_GET['id']));
-
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -106,7 +105,7 @@ $userTrackData = $admin->getUserTrackingDetalis(base64_decode($_GET['id']));
                                         <div id="dataTables-example_wrapper" class="dataTables_wrapper form-inline dt-bootstrap no-footer">
                                             <div class="row">
                                                 <h3 style="padding-left: 20px">Users details
-                                                    <span style="float: right;padding-right: 100px" id="online-symbol"></span>
+                                                    <span style="float: right;padding-right: 100px" id="online-symbol">Offline</span>
                                                 </h3>
 
                                                 <div style="padding-left: 30px">
@@ -115,12 +114,12 @@ $userTrackData = $admin->getUserTrackingDetalis(base64_decode($_GET['id']));
                                                             <tr><td>Name :</td><td><?php echo $userTrackData['name']; ?></td></tr> 
                                                             <tr><td>Email :</td><td><?php echo $userTrackData['email']; ?></td></tr> 
                                                             <tr><td>Tracking :</td><td><?php
-                                                                    if ($userTrackData['is_on_track'] == 1) {
-                                                                        echo 'Enabled';
-                                                                    } else {
-                                                                        echo 'Disabled';
-                                                                    }
-                                                                    ?></td></tr> 
+                if ($userTrackData['is_on_track'] == 1) {
+                    echo 'Enabled';
+                } else {
+                    echo 'Disabled';
+                }
+                ?></td></tr> 
                                                         </table>
                                                     </div>
                                                     <div style="float: right;padding-right: 50px">
@@ -135,7 +134,7 @@ $userTrackData = $admin->getUserTrackingDetalis(base64_decode($_GET['id']));
                                                     <div class="panel-body" style="padding: 0">
                                                         <h3>Location on Map</h3>
                                                         <div id="dvMap" style="width: auto; height: 400px"></div>
-                                                       
+
                                                     </div>
                                                 <?php } ?>
                                             </div>
@@ -211,24 +210,26 @@ $userTrackData = $admin->getUserTrackingDetalis(base64_decode($_GET['id']));
         </div>
         <script type="text/javascript">
             var map;
-            
-             function mapData(){           
-    var data1= [];
-                data1['email'] = '<?php echo $userTrackData['email']?>';
-                data1['trackStart'] = '<?php echo $userTrackData['trackStart']?>';
-                data1['trackEnd'] = '<?php echo $userTrackData['trackEnd']?>';
+
+            function mapData() {
+                var data1 = [];
+                data1['email'] = '<?php echo $userTrackData['email'] ?>';
+                data1['trackStart'] = '<?php echo $userTrackData['trackStart'] ?>';
+                data1['trackEnd'] = '<?php echo $userTrackData['trackEnd'] ?>';
                 $.ajax({
-                    url:'getMap.php',
+                    url: 'getMap.php',
                     type: 'post',
                     dataType: 'json',
-                    data: {email:data1['email'],trackStart:data1['trackStart'],trackEnd:data1['trackEnd']},
+                    data: {email: data1['email'], trackStart: data1['trackStart'], trackEnd: data1['trackEnd']},
                     success: function (result) {
-                        generatemap(result);
+                        if (result) {
+                            generatemap(result);
+                        }
                     }
                 });
             }
             $(document).ready(function () {
-                
+
 <?php if ($userTrackData['is_on_track'] == 0) { ?>
                     var today = new Date().format("%Y-%m-%d");
                     $('.startdatetimepicker').datetimepicker({
@@ -241,9 +242,9 @@ $userTrackData = $admin->getUserTrackingDetalis(base64_decode($_GET['id']));
                     });
 <?php } ?>
                 ServerManager.connect('http://52.24.255.248:7070', 'personneltracker', '<?php echo $_SESSION['data']['admindatabase'] . '@personneltracker' ?>', '<?php echo $_SESSION['data']['databasepassword'] ?>', 'roster_entry');
-   
-            mapData();
-                 map = new google.maps.Map(document.getElementById("dvMap"));
+
+                mapData();
+                map = new google.maps.Map(document.getElementById("dvMap"));
             });
 
             (function ($) {
@@ -348,14 +349,13 @@ $userTrackData = $admin->getUserTrackingDetalis(base64_decode($_GET['id']));
 
             function startSession() {
                 $('#tracking-status').val(1);
-                $('.tracking-details-form input[type=text]').each(function(){
+                $('.tracking-details-form input[type=text]').each(function () {
                     $(this).val('');
                 })
                 $('.tracking-details-form').show();
             }
 
             function reloadMap() {
-                console.log('Request Recieved');
                 mapData();
             }
 
@@ -364,6 +364,8 @@ $userTrackData = $admin->getUserTrackingDetalis(base64_decode($_GET['id']));
                 if (userId === user) {
                     if (stat == 'Online') {
                         $('#online-symbol').html('<img alt="icon" src="http://netlab.cz/status/ramb/online.png">');
+                    } else if (stat == '') {
+                        $('#online-symbol').html('<img alt="icon" src="http://netlab.cz/status/ramb/offline.png">');
                     } else {
                         $('#online-symbol').html(stat);
                     }
@@ -371,7 +373,7 @@ $userTrackData = $admin->getUserTrackingDetalis(base64_decode($_GET['id']));
             }
 
             function generatemap(data) {
-            var markers = data;
+                var markers = data;
                 var center;
                 for (i = 0; i < markers.length; i++) {
                     center = new google.maps.LatLng(markers[i][1], markers[i][2]);
@@ -383,7 +385,6 @@ $userTrackData = $admin->getUserTrackingDetalis(base64_decode($_GET['id']));
                 userCoor = markers;
                 var userCoorPath = [];
                 for (i = 0; i < userCoor.length; i++) {
-                    console.log(userCoor[i][1], userCoor[i][2]);
                     userCoorPath.push(new google.maps.LatLng(userCoor[i][1], userCoor[i][2]));
                 }
 
