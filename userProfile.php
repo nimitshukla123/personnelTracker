@@ -1,7 +1,7 @@
 <?php
 include_once 'admin-class.php';
 $admin = new itg_admin();
-$admin->_authenticate();
+
 if (!$_SESSION['admin_login']) {
     header('Location: index.php');
 }
@@ -109,7 +109,7 @@ $userTrackData = $admin->getUserTrackingDetalis(base64_decode($_GET['id']));
                                                     <span style="float: right;padding-right: 100px" id="online-symbol"></span>
                                                 </h3>
 
-                                                <div style="padding-left: 30px" confg-panel tracking-details-form>
+                                                <div style="padding-left: 30px">
                                                     <div style="float: left">
                                                         <table>
                                                             <tr><td>Name :</td><td><?php echo $userTrackData['name']; ?></td></tr> 
@@ -348,6 +348,9 @@ $userTrackData = $admin->getUserTrackingDetalis(base64_decode($_GET['id']));
 
             function startSession() {
                 $('#tracking-status').val(1);
+                $('.tracking-details-form input[type=text]').each(function(){
+                    $(this).val('');
+                })
                 $('.tracking-details-form').show();
             }
 

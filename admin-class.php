@@ -122,6 +122,9 @@ class itg_admin {
                     die();
                 }
             }
+        }else{
+            header("location: dashboard.php");
+                    die();
         }
     }
 
@@ -744,7 +747,8 @@ class itg_admin {
                 foreach ($result as $value) {
                     $arrayLatLng[] = array($value['locationtime'], $value['latitude'], $value['longitude']);
                 }
-                echo json_encode($arrayLatLng);exit;
+                echo json_encode($arrayLatLng);
+                exit;
             } else {
                 return FALSE;
             }
@@ -820,42 +824,42 @@ class itg_admin {
             exit(0);
         }
     }
-    
-    function getTotalTicketCounts(){
+
+    function getTotalTicketCounts() {
         global $db;
         global $dbhost;
         global $dbpassword;
         global $dbuser;
         try {
             $query = 'SELECT count(*) FROM `supportTicket` WHERE `status` = 0';
-            $res = $db->get_results($query,ARRAY_A);
-                       return $res[0]['count(*)'];
+            $res = $db->get_results($query, ARRAY_A);
+            return $res[0]['count(*)'];
         } catch (Exception $e) {
             
         }
     }
-    
-    function getTicketInfo(){
+
+    function getTicketInfo() {
         global $db;
         global $dbhost;
         global $dbpassword;
         global $dbuser;
         try {
             $query = 'SELECT * FROM `supportTicket` WHERE `status` = 0';
-            $res = $db->get_results($query,ARRAY_A);
+            $res = $db->get_results($query, ARRAY_A);
             return $res;
         } catch (Exception $e) {
             
         }
     }
-    
-    function closeTicket($id){
-         global $db;
+
+    function closeTicket($id) {
+        global $db;
         global $dbhost;
         global $dbpassword;
         global $dbuser;
         try {
-            $query = 'UPDATE `supportTicket` SET `status` = 1 WHERE id='.$id;
+            $query = 'UPDATE `supportTicket` SET `status` = 1 WHERE id=' . $id;
             if ($db->query($query)) {
                 $msg = 'Ticket has been updated!';
                 header("Location: viewTickets.php?msg=" . $msg);
@@ -869,6 +873,40 @@ class itg_admin {
             header("Location: viewTickets.php?msg=" . $e->getMessage());
             exit(0);
         }
+    }
+
+    public function getRunningSessionCount() {
+        global $db;
+        global $dbhost;
+        global $dbpassword;
+        global $dbuser;
+        try {
+            $adminemail = $admin = $_SESSION['admin_login'];
+            $getDbName = "select `admindatabase` from `admin_database_info` WHERE `email` = '" . $adminemail . "'";
+            $daName = $db->get_col($getDbName);
+            $dbUser = new ezSQL_mysql($dbuser, $dbpassword, $daName[0], $dbhost);
+            $selectData = 'SELECT count(*) from `user_info` WHERE  `is_on_track`=1';
+            $res = $dbUser->get_results($selectData, ARRAY_A);
+            return $res[0]['count(*)'];
+        } catch (Exception $e) {
+            $msg = $e->getMessage();
+            return $msg;
+        }
+    }
+
+    public function getRecentSession() {
+        global $db;
+        global $dbhost;
+        global $dbpassword;
+        global $dbuser;
+        $adminemail = $admin = $_SESSION['admin_login'];
+        $getDbName = "select `admindatabase` from `admin_database_info` WHERE `email` = '" . $adminemail . "'";
+        $daName = $db->get_col($getDbName);
+        $dbUser = new ezSQL_mysql($dbuser, $dbpassword, $daName[0], $dbhost);
+        $count = "SELECT * FROM `user_session_details` ORDER BY id DESC
+      LIMIT 3";
+        $result = $dbUser->get_results($count, ARRAY_A);
+        return $result;
     }
 
 }

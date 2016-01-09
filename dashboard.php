@@ -147,6 +147,7 @@ if (!$_SESSION['admin_login']) {
                             </div>
                         </div>
                     <?php } ?>
+                     <?php  if ($_SESSION['is_super'] == 0) { ?>
                     <div class="col-lg-3 col-md-6">
                         <div class="panel panel-yellow">
                             <div class="panel-heading">
@@ -155,7 +156,7 @@ if (!$_SESSION['admin_login']) {
                                         <i class="fa fa-shopping-cart fa-5x"></i>
                                     </div>
                                     <div class="col-xs-9 text-right">
-                                        <div class="huge">0</div>
+                                        <div class="huge"><?php echo $admin->getRunningSessionCount() ?></div>
                                         <div>Running sessions!</div>
                                     </div>
                                 </div>
@@ -169,6 +170,7 @@ if (!$_SESSION['admin_login']) {
                             </a>
                         </div>
                     </div>
+                     <?php } ?>
                     <div class="col-lg-3 col-md-6">
                         <div class="panel panel-red">
                             <div class="panel-heading">
@@ -178,10 +180,10 @@ if (!$_SESSION['admin_login']) {
                                     </div>
                                     <div class="col-xs-9 text-right">
                                         <?php if ($_SESSION['is_super'] == 1) { ?>
-                                            <div class="huge"><?php echo $admin->getTotalTicketCounts()?></div>
-                                        <?php } else{ ?>
+                                            <div class="huge"><?php echo $admin->getTotalTicketCounts() ?></div>
+                                        <?php } else { ?>
                                             <div class="huge"></div>
-                                        <?php }?>
+                                        <?php } ?>
                                         <div>Support Tickets!</div>
                                     </div>
                                 </div> 
@@ -287,6 +289,7 @@ if (!$_SESSION['admin_login']) {
                             </div>
                         </div>
                     <?php } ?>
+                    <?php  if ($_SESSION['is_super'] == 0) { ?>
                     <div class="col-lg-6">
                         <div class="panel panel-default">
                             <div class="panel-heading">
@@ -298,36 +301,32 @@ if (!$_SESSION['admin_login']) {
                                         <thead>
                                             <tr>
                                                 <th>#</th>
-                                                <th>First Name</th>
-                                                <th>Last Name</th>
-                                                <th>Username</th>
+                                                <th>Id</th>
+                                                <th>Email</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <tr>
-                                                <td>1</td>
-                                                <td>Mark</td>
-                                                <td>Otto</td>
-                                                <td>@mdo</td>
-                                            </tr>
-                                            <tr>
-                                                <td>2</td>
-                                                <td>Jacob</td>
-                                                <td>Thornton</td>
-                                                <td>@fat</td>
-                                            </tr>
-                                            <tr>
-                                                <td>3</td>
-                                                <td>Larry</td>
-                                                <td>the Bird</td>
-                                                <td>@twitter</td>
-                                            </tr>
-                                        </tbody>
+                                                <?php
+                                                $data = $admin->getRecentSession();
+                                                $i = 1;
+                                                foreach ($data as $value) {
+                                                    ?>
+                                                    <tr>
+                                                        <td><?php echo $i; ?></td>
+                                                        <td><?php echo $value['grcid']; ?></td>
+                                                        <td><?php echo $value['email']; ?></td>
+                                                    </tr>
+                                                    <?php
+                                                    ++$i;
+                                                }
+                                                ?>
+                                            </tbody>
                                     </table>
                                 </div>
                             </div>
                         </div>
                     </div>
+                    <?php }?>
                 </div>
             </div>
         </div>
@@ -340,7 +339,7 @@ if (!$_SESSION['admin_login']) {
         <script src="dist/js/sb-admin-2.js"></script>
         <?php if ($_SESSION['is_super'] == 0) { ?>
             <script>
-                                ServerManager.connect('http://52.24.255.248:7070', 'personneltracker', '<?php echo $_SESSION['data']['admindatabase'] . '@personneltracker' ?>', '<?php echo $_SESSION['data']['databasepassword'] ?>', 'roster_entry');
+                                    ServerManager.connect('http://52.24.255.248:7070', 'personneltracker', '<?php echo $_SESSION['data']['admindatabase'] . '@personneltracker' ?>', '<?php echo $_SESSION['data']['databasepassword'] ?>', 'roster_entry');
             </script>
 
         <?php } ?>

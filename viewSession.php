@@ -1,7 +1,6 @@
 <?php
 include_once 'admin-class.php';
 $admin = new itg_admin();
-$admin->_authenticate();
 if (!$_SESSION['admin_login']) {
     header('Location: index.php');
 }
