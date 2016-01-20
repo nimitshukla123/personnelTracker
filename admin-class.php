@@ -201,6 +201,8 @@ class itg_admin {
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
   `email` varchar(255) NOT NULL,
+  `company` varchar(255) NOT NULL,
+  `contact` varchar(255) NOT NULL,
   `is_active` tinyint(1) NOT NULL,
   `created_at` timestamp,
   `is_on_track` tinyint(1) NOT NULL,
@@ -469,6 +471,8 @@ class itg_admin {
         $dbUser = new ezSQL_mysql($dbuser, $dbpassword, $daName[0], $dbhost);
         $name = $this->post['username'];
         $email = $this->post['email'];
+        $contact = $this->post['contact'];
+        $company = $this->post['company'];
         if (($name == '') || ($email == '')) {
             $redirectUrl = 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
             header("Location: " . $redirectUrl . "?msg=Invalid values! please submit again. ");
@@ -476,8 +480,8 @@ class itg_admin {
         }
         $digits = 3;
         $secretCode = $daName[0] . '_' . rand(pow(10, $digits - 1), pow(10, $digits) - 1);
-        $userInsert = "INSERT INTO `user_info`(`name`, `email`,`uniqueCode`,`created_at`,`is_on_track`, `is_active`) "
-                . "VALUES ('" . $name . "','" . $email . "','" . $secretCode . "','" . (date('Y-m-d H:i:s')) . "',0,1)";
+        $userInsert = "INSERT INTO `user_info`(`name`, `email`,`uniqueCode`,`created_at`,`is_on_track`, `is_active`,`company`,`contact`) "
+                . "VALUES ('" . $name . "','" . $email . "','" . $secretCode . "','" . (date('Y-m-d H:i:s')) . "',0,1,'" . $company . "','" . $contact . "')";
         $dbUser->query($userInsert);
         $check = 0;
         $this->sendEmail($email, NULL, $name, $check, $secretCode);
@@ -892,6 +896,26 @@ class itg_admin {
             $msg = $e->getMessage();
             return $msg;
         }
+    }
+    
+    public function getRunningSession(){
+        global $db;
+        global $dbhost;
+        global $dbpassword;
+        global $dbuser;
+        try {
+            $adminemail = $admin = $_SESSION['admin_login'];
+            $getDbName = "select `admindatabase` from `admin_database_info` WHERE `email` = '" . $adminemail . "'";
+            $daName = $db->get_col($getDbName);
+            $dbUser = new ezSQL_mysql($dbuser, $dbpassword, $daName[0], $dbhost);
+            $selectData = 'SELECT * from `user_info` WHERE  `is_on_track`=1';
+            $res = $dbUser->get_results($selectData, ARRAY_A);
+            return $res;
+        } catch (Exception $e) {
+            $msg = $e->getMessage();
+            return FALSE;
+        }
+        
     }
 
     public function getRecentSession() {

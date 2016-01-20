@@ -48,7 +48,7 @@ $userSessionData = $admin->getUserSessionData(base64_decode($_GET['id']));
                 <ul class="nav navbar-top-links navbar-right">
                     <li class="dropdown">
                         <a class="dropdown-toggle" data-toggle="dropdown" href="#">
-                            <i class="fa fa-user fa-fw"></i>  <i class="fa fa-caret-down"></i>
+                            <i class="fa fa-bars fa-fw"></i>  <i class="fa fa-caret-down"></i>
                         </a>
                         <ul class="dropdown-menu dropdown-user">
                             <li><a href="adminProfile.php"><i class="fa fa-user fa-fw"></i> User Profile</a>
@@ -82,7 +82,7 @@ $userSessionData = $admin->getUserSessionData(base64_decode($_GET['id']));
             <div class="cust-message">
                 <?php echo $_GET['msg']; ?>
             </div>
-            <div id="page-wrapper">
+            <div id="page-wrapper" style="min-height: 0">
                 <div class="container-fluid">
                     <div class="row">
                         <div class="col-lg-12">
@@ -123,11 +123,7 @@ $userSessionData = $admin->getUserSessionData(base64_decode($_GET['id']));
                                                     </div>
                                                 </div>
                                                 <div class="row">
-                                                    <div class="panel-body" style="padding: 0">
-                                                        <h3 style="padding-left: 20px ">Location on Map</h3>
-                                                        <div id="dvMap" style="width: auto; height: 400px"></div>
-
-                                                    </div>
+                                                   
                                                 </div>
                                             <?php } ?>
                                         </div>
@@ -139,6 +135,11 @@ $userSessionData = $admin->getUserSessionData(base64_decode($_GET['id']));
                 </div>
             </div>
         </div>
+         <div class="panel-body" style="padding: 0">
+                                                        <h3 style="padding-left: 20px ">Location on Map</h3>
+                                                        <div id="dvMap" style="width: 100%; height: 600px"></div>
+
+                                                    </div>
     </body>
     <script>
         function getRecordedSession() {

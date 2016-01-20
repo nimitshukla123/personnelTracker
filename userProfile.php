@@ -42,7 +42,7 @@ $userTrackData = $admin->getUserTrackingDetalis(base64_decode($_GET['id']));
         <script src="bower_components/morrisjs/morris.min.js"></script>
     </head>
     <body>
-        <div id="wrapper">
+        <div id="wrapper" style="height: auto">
             <nav class="navbar navbar-default navbar-static-top" role="navigation" style="margin-bottom: 0">
                 <div class="navbar-header">
                     <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
@@ -56,7 +56,7 @@ $userTrackData = $admin->getUserTrackingDetalis(base64_decode($_GET['id']));
                 <ul class="nav navbar-top-links navbar-right">
                     <li class="dropdown">
                         <a class="dropdown-toggle" data-toggle="dropdown" href="#">
-                            <i class="fa fa-user fa-fw"></i>  <i class="fa fa-caret-down"></i>
+                            <i class="fa fa-bars fa-fw"></i>  <i class="fa fa-caret-down"></i>
                         </a>
                         <ul class="dropdown-menu dropdown-user">
                             <li><a href="adminProfile.php"><i class="fa fa-user fa-fw"></i> User Profile</a>
@@ -90,7 +90,7 @@ $userTrackData = $admin->getUserTrackingDetalis(base64_decode($_GET['id']));
             <div class="cust-message">
                 <?php echo $_GET['msg']; ?>
             </div>
-            <div id="page-wrapper">
+            <div id="page-wrapper" style="min-height:0">
                 <div class="container-fluid">
                     <div class="row">
                         <div class="col-lg-12">
@@ -120,6 +120,7 @@ $userTrackData = $admin->getUserTrackingDetalis(base64_decode($_GET['id']));
                     echo 'Disabled';
                 }
                 ?></td></tr> 
+                                                            <tr><td>Company :</td><td><?php echo $userTrackData['company']?></td></tr>
                                                         </table>
                                                     </div>
                                                     <div style="float: right;padding-right: 50px">
@@ -130,13 +131,7 @@ $userTrackData = $admin->getUserTrackingDetalis(base64_decode($_GET['id']));
                                                 </div>
                                             </div>
                                             <div class="row">
-                                                <?php if ($userTrackData['is_on_track'] == 1) { ?>
-                                                    <div class="panel-body" style="padding: 0">
-                                                        <h3>Location on Map</h3>
-                                                        <div id="dvMap" style="width: auto; height: 400px"></div>
-
-                                                    </div>
-                                                <?php } ?>
+                                                
                                             </div>
                                             <div id="user-form-values" class="row" style="display: none;margin-top: 20px">
                                                 <form class="configure-input" method="post" action="userProfile.php">
@@ -208,6 +203,13 @@ $userTrackData = $admin->getUserTrackingDetalis(base64_decode($_GET['id']));
                     </span><span id="track-msg-sessn">Do you want to save the session?</span></p>
             </div>
         </div>
+        <?php if ($userTrackData['is_on_track'] == 1) { ?>
+                                                    <div class="panel-body map-show" style="padding: 0">
+                                                        <h3>Location on Map</h3>
+                                                        <div id="dvMap" style="width: 100%; height: 600px"></div>
+
+                                                    </div>
+                                                <?php } ?>
         <script type="text/javascript">
             var map;
 
@@ -245,6 +247,7 @@ $userTrackData = $admin->getUserTrackingDetalis(base64_decode($_GET['id']));
 
                 mapData();
                 map = new google.maps.Map(document.getElementById("dvMap"));
+                
             });
 
             (function ($) {
@@ -373,6 +376,9 @@ $userTrackData = $admin->getUserTrackingDetalis(base64_decode($_GET['id']));
             }
 
             function generatemap(data) {
+            if(data){
+//                $('.map-show').show();
+            }
                 var markers = data;
                 var center;
                 for (i = 0; i < markers.length; i++) {

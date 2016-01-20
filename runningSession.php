@@ -1,16 +1,9 @@
 <?php
 include_once 'admin-class.php';
 $admin = new itg_admin();
-if (!$_SESSION['admin_login']) {
-    header('Location: index.php');
-}
-
-if($_POST){
-    if(!empty($_POST['ticket'])){
-        $admin->saveTicket($_POST['name'],$_POST['email'],$_POST['ticket']);
-    }
-}
+$runningSessionData = $admin->getRunningSession();
 ?>
+<!DOCTYPE html>
 <html lang="en">
     <head>
         <meta charset="utf-8">
@@ -25,17 +18,14 @@ if($_POST){
         <link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
         <link href="bower_components/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
         <script src="bower_components/datePicker/jquery.js"></script>
-        <script src="bower_components/datePicker/jquery.datetimepicker.full.js"></script>
-        <link rel="stylesheet" href="bower_components/datePicker/jquery.datetimepicker.css">
-        <script src="bower_components/datePicker/formatDate.js"></script>
         <script src="js/strophe.js" type="text/javascript"></script>
         <script src="js/strophe-openfire.js" type="text/javascript"></script>
         <script src="js/ServerManager.js"></script>
         <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
-        <script type="text/javascript" src="http://maps.googleapis.com/maps/api/js?sensor=false"></script>
-         <script src="bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+        <script src="bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
         <script src="bower_components/metisMenu/dist/metisMenu.min.js"></script>
         <script src="bower_components/raphael/raphael-min.js"></script>
+        <script src="bower_components/morrisjs/morris.min.js"></script>
     </head>
     <body>
         <div id="wrapper">
@@ -69,13 +59,13 @@ if($_POST){
                     <div class="sidebar-nav navbar-collapse">
                         <ul class="nav" id="side-menu">
                             <li>
-                                <a href="dashboard.php"><i class="fa fa-dashboard fa-fw"></i>Dashboard</a>
+                                <a href="dashboard.php"><i class="fa fa-dashboard fa-fw"></i> Dashboard</a>
                             </li>
-<?php if ($_SESSION['is_super'] == 1) { ?>
+                            <?php if ($_SESSION['is_super'] == 1) { ?>
                                 <li>
                                     <a href="admins.php"><i class="fa fa-users"></i> Admin Users</a>
                                 </li>
-<?php } ?>
+                            <?php } ?>
                             <li>
                                 <a href="users.php"><i class="fa fa-users"></i> Users</a>
                             </li>
@@ -84,39 +74,47 @@ if($_POST){
                 </div>
             </nav>
             <div class="cust-message">
-<?php echo $_GET['msg']; ?>
+                <?php echo $_GET['msg']; ?>
             </div>
             <div id="page-wrapper">
                 <div class="container-fluid">
                     <div class="row">
                         <div class="col-lg-12">
-                            <h1 class="page-header">Add Ticket</h1>
+                            <h1 class="page-header">Running Session</h1>
                         </div>
                     </div>
                     <div class="row">
                         <div class="col-lg-12">
                             <div class="panel panel-default">
+                                <div class="panel-heading">
+                                    Showing List of Personnel's Running Session 
+                                </div>
                                 <div class="panel-body">
-                                    <div class="contact-us" style="height: 400px">
-                                        <form id="contact-us-form" method="post" action="addTickets.php">
-                                            <table  style="line-height: 30px; float: left">
-                                                <tr>
-                                                    <td><label>Name:</label></td>
-                                                    <td><input type="text" name="name"  value="<?php echo $_SESSION['data']['name']?>"/></td>
-                                                </tr>
-                                                <tr>
-                                                    <td><label>Email:</label></td>
-                                                    <td><input type="text" name="email" readonly="" value="<?php echo $_SESSION['data']['email']?>"/></td>
-                                                </tr>
-                                                <tr>
-                                                    <td><label>Ticket:</label></td>
-                                                    <td><textarea name="ticket" cols="20" rows="3"></textarea></td>
-                                                </tr>
-                                                <tr>
-                                                    <td colspan="2" style="padding-left: 100px"><input type="submit" value="submit"></td> 
-                                                </tr>
-                                            </table>
-                                        </form> 
+                                    <div class="dataTable_wrapper">
+                                        <div id="dataTables-example_wrapper" class="dataTables_wrapper form-inline dt-bootstrap no-footer">
+                                            <div class="row">
+                                                <div class="col-sm-12">
+                                                    <table id="dataTables-example" class="table table-striped table-bordered table-hover dataTable no-footer" role="grid" aria-describedby="dataTables-example_info">
+                                                        <thead>
+                                                            <tr role="row">
+                                                                <th  rowspan="1" colspan="1" style="width: 175px;" aria-sort="ascending">Name</th>
+                                                                <th   rowspan="1" colspan="1" style="width: 203px;" >Email</th>
+                                                                <th   rowspan="1" colspan="1" style="width: 150px;" >Company</th>
+                                                        </thead> 
+                                                        <tbody>
+                                                            <?php foreach ($runningSessionData as $value) {?>
+                                                            <tr>
+                                                        <td><?php echo $value['name']?></td>
+                                                        <td><?php echo $value['email']?></td>
+                                                        <td><?php echo $value['company']?></td>
+                                                        </tr>
+                                                            <?php }?>
+                                                        <td></td>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -127,4 +125,3 @@ if($_POST){
         </div>
     </body>
 </html>
-

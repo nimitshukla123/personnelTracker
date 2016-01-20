@@ -42,7 +42,7 @@ if (!$_SESSION['admin_login']) {
 
                     <li class="dropdown">
                         <a class="dropdown-toggle" data-toggle="dropdown" href="#">
-                            <i class="fa fa-user fa-fw"></i>  <i class="fa fa-caret-down"></i>
+                            <i class="fa fa-bars fa-fw"></i>  <i class="fa fa-caret-down"></i>
                         </a>
                         <ul class="dropdown-menu dropdown-user">
                             <li><a href="adminProfile.php"><i class="fa fa-user fa-fw"></i> User Profile</a>
@@ -161,7 +161,7 @@ if (!$_SESSION['admin_login']) {
                                     </div>
                                 </div>
                             </div>
-                            <a href="#">
+                            <a href="runningSession.php">
                                 <div class="panel-footer">
                                     <span class="pull-left">View Details</span>
                                     <span class="pull-right"><i class="fa fa-arrow-circle-right"></i></span>
@@ -253,7 +253,7 @@ if (!$_SESSION['admin_login']) {
                         <div class="col-lg-6">
                             <div class="panel panel-default">
                                 <div class="panel-heading">
-                                    Recent Users
+                                   Recently Added Personnel
                                 </div>
                                 <div class="panel-body">
                                     <div class="table-responsive">

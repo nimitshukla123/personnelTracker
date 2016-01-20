@@ -54,7 +54,7 @@ if ($_GET['op'] == "delete") {
                 <ul class="nav navbar-top-links navbar-right">
                     <li class="dropdown">
                         <a class="dropdown-toggle" data-toggle="dropdown" href="#">
-                            <i class="fa fa-user fa-fw"></i>  <i class="fa fa-caret-down"></i>
+                            <i class="fa fa-bars fa-fw"></i>  <i class="fa fa-caret-down"></i>
                         </a>
                         <ul class="dropdown-menu dropdown-user">
                             <li><a href="adminProfile.php"><i class="fa fa-user fa-fw"></i> User Profile</a>
@@ -99,7 +99,7 @@ if ($_GET['op'] == "delete") {
                         <div class="col-lg-12">
                             <div class="panel panel-default">
                                 <div class="panel-heading">
-                                    Showing List Of Users
+                                   Showing List of Personnel 
                                 </div>
                                 <div class="panel-body">
                                     <div class="dataTable_wrapper">
@@ -112,6 +112,8 @@ if ($_GET['op'] == "delete") {
                                                                 <th  tabindex="0" aria-controls="dataTables-example" rowspan="1" colspan="1" style="width: 175px;" aria-sort="ascending" aria-label="Rendering engine: activate to sort column descending">Name</th>
                                                                 <th  tabindex="0" aria-controls="dataTables-example" rowspan="1" colspan="1" style="width: 203px;" aria-label="Browser: activate to sort column ascending">Email</th>
                                                                 <th  tabindex="0" aria-controls="dataTables-example" rowspan="1" colspan="1" style="width: 150px;" aria-label="Engine version: activate to sort column ascending">Registration Date</th>
+                                                                 <th  tabindex="0" aria-controls="dataTables-example" rowspan="1" colspan="1" style="width: 175px;" aria-sort="ascending" aria-label="Rendering engine: activate to sort column descending">Contact Number</th>
+                                                                 <th  tabindex="0" aria-controls="dataTables-example" rowspan="1" colspan="1" style="width: 175px;" aria-sort="ascending" aria-label="Rendering engine: activate to sort column descending">Company Name</th>
                                                                 <?php if ($_SESSION['is_super'] == 0) { ?> <th  tabindex="0" aria-controls="dataTables-example" rowspan="1" colspan="1" style="width: 108px;" aria-label="CSS grade: activate to sort column ascending">Operation</th><?php } ?>
                                                                 <th  tabindex="0" aria-controls="dataTables-example" rowspan="1" colspan="1" style="width: 100px;" aria-label="Engine version: activate to sort column ascending">Current Status</th></tr>
                                                         </thead> 
@@ -122,6 +124,8 @@ if ($_GET['op'] == "delete") {
                                                                     <td><?php echo $value['email']; ?></td>
                                                                     <?php $date = date_create($value['created_at']); ?>
                                                                     <td class="center"><?php echo date_format($date, 'jS F Y'); ?></td>
+                                                                    <td><?php echo $value['contact']; ?></td>
+                                                                    <td><?php echo $value['company']; ?></td>
                                                                     <?php if ($_SESSION['is_super'] == 0) { ?>   <td class="center">
                                                                             <a href="users.php?op=delete&id=<?php echo $value['id']; ?>">Delete</a> | 
                                                                             <a href="userProfile.php?id=<?php echo base64_encode($value['id']); ?>">View</a>
