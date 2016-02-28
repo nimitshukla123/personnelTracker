@@ -7,4 +7,5 @@
  */
 include_once 'admin-class.php';
 $admin = new itg_admin();
-return $admin->getTrackedData($_POST);exit;
+return $admin->getTrackedData($_POST);
+exit(0);

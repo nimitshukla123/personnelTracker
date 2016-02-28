@@ -34,12 +34,12 @@ if ($_SESSION['is_super'] == 1) {
             <script src="js/strophe.js" type="text/javascript"></script>
             <script src="js/strophe-openfire.js" type="text/javascript"></script>
             <script src="js/ServerManager.js"></script>
-            <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
             <script type="text/javascript" src="http://maps.googleapis.com/maps/api/js?sensor=false"></script>
             <script src="bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
             <script src="bower_components/metisMenu/dist/metisMenu.min.js"></script>
             <script src="bower_components/raphael/raphael-min.js"></script>
             <script src="bower_components/morrisjs/morris.min.js"></script>
+            <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
         </head>
         <body>
             <div id="wrapper">
@@ -223,7 +223,7 @@ if ($_SESSION['is_super'] == 1) {
     <!DOCTYPE html>
     <html lang = "en">
         <head>
-           <meta charset="utf-8">
+            <meta charset="utf-8">
             <meta http-equiv="X-UA-Compatible" content="IE=edge">
             <meta name="viewport" content="width=device-width, initial-scale=1">
             <meta name="description" content="">
@@ -238,10 +238,10 @@ if ($_SESSION['is_super'] == 1) {
             <script src="bower_components/datePicker/jquery.datetimepicker.full.js"></script>
             <link rel="stylesheet" href="bower_components/datePicker/jquery.datetimepicker.css">
             <script src="bower_components/datePicker/formatDate.js"></script>
-            <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
             <script src="bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
             <script src="bower_components/metisMenu/dist/metisMenu.min.js"></script>
             <script src="bower_components/morrisjs/morris.min.js"></script>
+            <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
         </head>
         <body>
             <div id = "wrapper">
@@ -258,7 +258,7 @@ if ($_SESSION['is_super'] == 1) {
                     <ul class="nav navbar-top-links navbar-right">
                         <li class="dropdown">
                             <a class="dropdown-toggle" data-toggle="dropdown" href="#">
-                                <i class="fa fa-user fa-fw"></i>  <i class="fa fa-caret-down"></i>
+                                <i class="fa fa-bars fa-fw"></i>  <i class="fa fa-caret-down"></i>
                             </a>
                             <ul class="dropdown-menu dropdown-user">
                                 <li><a href="adminProfile.php"><i class="fa fa-user fa-fw"></i> User Profile</a>
@@ -307,13 +307,12 @@ if ($_SESSION['is_super'] == 1) {
                                         <div class="col-lg-6">
                                             <form role="form" id="addUserForm" action="addAdminUsers.php" method="post">
                                                 <div class="form-group">
-                                                    <label>Name</label>
-                                                    <input name="username" class="form-control" placeholder="Enter Name">
+                                                    <label class="required">Name</label>
+                                                    <input id="username" name="username" class="form-control" placeholder="Enter Name">
                                                 </div>
                                                 <div class="form-group">
-                                                    <label>Email</label>
-                                                    <input id="emailvalidate" name="email" class="form-control" placeholder="Enter Email">
-                                                    <span id="email-error" style="color:red;display: none">This Email is already exist.</span>
+                                                    <label class="required">Email</label>
+                                                    <input id="emailvalidate" name="email" class="form-control" placeholder="Enter Email" required="">
                                                 </div>
                                                 <div class="form-group">
                                                     <label>Company Name </label>
@@ -328,26 +327,84 @@ if ($_SESSION['is_super'] == 1) {
                                                 <button type="reset" class="btn btn-default">Reset</button>
                                             </form>
                                         </div>
+                                        <div class="error-message">
+                                            <span id="email-error" style="color:red;display: none;">Email already exist.</span>
+                                            <div class="windows8 loader-on-submit" style="margin: 0 auto;overflow: auto;z-index: 99999;display: none">
+                                                <div class="wBall" id="wBall_1">
+                                                    <div class="wInnerBall"></div>
+                                                </div>
+                                                <div class="wBall" id="wBall_2">
+                                                    <div class="wInnerBall"></div>
+                                                </div>
+                                                <div class="wBall" id="wBall_3">
+                                                    <div class="wInnerBall"></div>
+                                                </div>
+                                                <div class="wBall" id="wBall_4">
+                                                    <div class="wInnerBall"></div>
+                                                </div>
+                                                <div class="wBall" id="wBall_5">
+                                                    <div class="wInnerBall"></div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div id="dialog-email" title="Action" style="display: none">
+                <div id="dialog-email" title="Personnel Tracker" style="display: none">
                     <p>
-                        <span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 20px 0;">
+                        <span  style="float:left; margin:0 7px 20px 0;">
 
                         </span>Invalid Email!</p>
                 </div>
+                <div id="dialog-user-added" title="Personnel Tracker" style="display: none">
+                    <p>
+                        <span  style="float:left; margin:0 7px 20px 0;">
+
+                        </span>User added</p>
+                </div>
+
             </div>
         </body>
         <script type="text/javascript">
             function submitForm() {
-                var addUserForm = jQuery('#addUserForm');
-                addUserForm.submit();
+                if($('#emailvalidate').val() != '' && $('#username').val() != ''){
+                $('.loader-on-submit').show();
+                var formData = jQuery('#addUserForm').serialize();
+                jQuery.ajax({
+                    url: 'addAdminUsers.php',
+                    type: 'post',
+                    dataType: 'json',
+                    data: formData,
+                    success: function (data) {
+                        if (data.status) {
+                            $('.loader-on-submit').hide();
+                            jQuery("#dialog-user-added").dialog({
+                                resizable: false,
+                                height: 180,
+                                modal: true,
+                                dialogClass: "noOverlayDialog",
+                                buttons: {
+                                    "Ok": function () {
+                                        $(this).dialog("close");
+                                        jQuery('#addUserForm').trigger('reset'); 
+                                        jQuery('#adminButton').prop('disabled','disabled');
+                                    },
+                                },
+                                open: function (event, ui) {
+                                    $('.noOverlayDialog').next('div').css({'opacity': 0.0});
+                                }
+                            });
+                        }
+                    }
 
+                });
+            }else{
+                alert('email and name is a required field');
             }
+        }
 
             function validateEmail(email) {
                 var re = /^([\w-]+(?:\.[\w-]+)*)@((?:[\w-]+\.)*\w[\w-]{0,66})\.([a-z]{2,6}(?:\.[a-z]{2})?)$/i;
@@ -393,7 +450,7 @@ if ($_SESSION['is_super'] == 1) {
                             });
                         }
                     } else {
-                        jQuery('#adminButton').addAttr("disabled", "disabled");
+                        jQuery('#adminButton').prop("disabled", "disabled");
                     }
                 });
             });

@@ -7,4 +7,9 @@
  */
 include_once 'admin-class.php';
 $admin = new itg_admin();
+
+if($_POST['delete'] == 1){
+   $admin->deleteSavedSession($_POST['sessionId']); 
+}else{
 $admin->getSavedSession($_POST['sessionId']);
+}

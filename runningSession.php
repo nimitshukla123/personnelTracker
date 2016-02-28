@@ -80,11 +80,14 @@ $runningSessionData = $admin->getRunningSession();
                 <div class="container-fluid">
                     <div class="row">
                         <div class="col-lg-12">
-                            <h1 class="page-header">Running Session</h1>
+                            <h1 class="page-header">Active Session</h1>
                         </div>
                     </div>
                     <div class="row">
                         <div class="col-lg-12">
+                            <?php if(empty($runningSessionData)){?>
+                            <p>No active session found</p>
+                            <?php }else{?>
                             <div class="panel panel-default">
                                 <div class="panel-heading">
                                     Showing List of Personnel's Running Session 
@@ -118,6 +121,7 @@ $runningSessionData = $admin->getRunningSession();
                                     </div>
                                 </div>
                             </div>
+                            <?php }?>
                         </div>
                     </div>
                 </div>

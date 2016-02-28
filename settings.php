@@ -5,7 +5,7 @@ if (!$_SESSION['admin_login']) {
     header('Location: index.php');
 }
 
-if(!empty($_POST)){
+if (!empty($_POST)) {
     $admin->changeAdminPassword($_POST);
 }
 ?>
@@ -20,6 +20,7 @@ if(!empty($_POST)){
         <title>Personnel Tracker</title>
         <link href="bower_components/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
         <link href="bower_components/metisMenu/dist/metisMenu.min.css" rel="stylesheet">
+        <link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
         <link href="dist/css/timeline.css" rel="stylesheet">
         <link href="dist/css/sb-admin-2.css" rel="stylesheet">
         <link href="bower_components/morrisjs/morris.css" rel="stylesheet">
@@ -32,6 +33,7 @@ if(!empty($_POST)){
         <script src="bower_components/morrisjs/morris.min.js"></script>
         <script src="js/morris-data.js"></script>
         <script src="dist/js/sb-admin-2.js"></script>
+        <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
     </head>
     <body>
         <div id="wrapper">
@@ -114,7 +116,7 @@ if(!empty($_POST)){
                                                                     <td> <input type="text" name="cpassword"/></td>
                                                                 </tr>
                                                                 <tr>
-                                                                    <td style="text-align: center" colspan="2"> <button type="submit" name="submit">submit</button></td>
+                                                                    <td style="text-align: center" colspan="2"> <button type="button" onclick="changePassword();">submit</button></td>
                                                                 </tr>
                                                             </table>
                                                         </form>
@@ -130,13 +132,46 @@ if(!empty($_POST)){
                 </div>
             </div>
         </div>
+        <div id="dialog-changePassword" title="Personnel Tracker" style="display: none">
+            <p>
+                <span  style="float:left; margin:0 0px 0px 0;">
+
+                </span><span style="float:left;" id="track-msg-sucss"></span></p>
+        </div>
         <script>
             function showChangePasswordForm() {
                 $('.password-form').show();
             }
-            
-            function checkValidation(){
-              
+
+            function changePassword() {
+                var data = $('#password-change').serialize();
+                $.ajax({
+                    url: 'settings.php',
+                    type: 'post',
+                    dataType: 'json',
+                    data: data,
+                    success: function (result) {
+//                        if (result.status == true) {
+                            $('#track-msg-sucss').html(result.msg);
+                            $("#dialog-changePassword").dialog({
+                                resizable: false,
+                                height: 180,
+                                modal: true,
+                                dialogClass: "noOverlayDialog",
+                                buttons: {
+                                    "Ok": function () {
+                                        $(this).dialog("close");
+                                        window.location.reload();
+                                    },
+                                },
+                                open: function (event, ui) {
+                                    $('.noOverlayDialog').next('div').css({'opacity': 0.0});
+                                }
+                            });
+
+//                        }
+                    }
+                });
             }
         </script>
     </body>

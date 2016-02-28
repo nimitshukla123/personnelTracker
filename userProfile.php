@@ -34,12 +34,14 @@ $userTrackData = $admin->getUserTrackingDetalis(base64_decode($_GET['id']));
         <script src="js/strophe.js" type="text/javascript"></script>
         <script src="js/strophe-openfire.js" type="text/javascript"></script>
         <script src="js/ServerManager.js"></script>
-        <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
         <script type="text/javascript" src="http://maps.googleapis.com/maps/api/js?sensor=false"></script>
+       
         <script src="bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+         <script src="dist/js/jstz.min.js"/>
         <script src="bower_components/metisMenu/dist/metisMenu.min.js"></script>
         <script src="bower_components/raphael/raphael-min.js"></script>
         <script src="bower_components/morrisjs/morris.min.js"></script>
+        <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
     </head>
     <body>
         <div id="wrapper" style="height: auto">
@@ -114,13 +116,13 @@ $userTrackData = $admin->getUserTrackingDetalis(base64_decode($_GET['id']));
                                                             <tr><td>Name :</td><td><?php echo $userTrackData['name']; ?></td></tr> 
                                                             <tr><td>Email :</td><td><?php echo $userTrackData['email']; ?></td></tr> 
                                                             <tr><td>Tracking :</td><td><?php
-                if ($userTrackData['is_on_track'] == 1) {
-                    echo 'Enabled';
-                } else {
-                    echo 'Disabled';
-                }
-                ?></td></tr> 
-                                                            <tr><td>Company :</td><td><?php echo $userTrackData['company']?></td></tr>
+                                                                    if ($userTrackData['is_on_track'] == 1) {
+                                                                        echo 'Enabled';
+                                                                    } else {
+                                                                        echo 'Disabled';
+                                                                    }
+                                                                    ?></td></tr> 
+                                                            <tr><td>Company :</td><td><?php echo $userTrackData['company'] ?></td></tr>
                                                         </table>
                                                     </div>
                                                     <div style="float: right;padding-right: 50px">
@@ -131,10 +133,11 @@ $userTrackData = $admin->getUserTrackingDetalis(base64_decode($_GET['id']));
                                                 </div>
                                             </div>
                                             <div class="row">
-                                                
+
                                             </div>
                                             <div id="user-form-values" class="row" style="display: none;margin-top: 20px">
                                                 <form class="configure-input" method="post" action="userProfile.php">
+                                                    <input type="hidden" name="default_locale" value="" class="def-local"/>
                                                     <h3 style="padding-left: 20px">Configure the tracking details</h3>
                                                     <div class="tracking-status">
                                                         <?php if ($userTrackData['is_on_track'] == 1) { ?>
@@ -184,32 +187,32 @@ $userTrackData = $admin->getUserTrackingDetalis(base64_decode($_GET['id']));
                     </div>
                 </div>
             </div>
-            <div id="dialog-confirm" title="Action" style="display: none">
+            <div id="dialog-confirm" title="Personnel Tracker" style="display: none">
                 <p>
-                    <span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 20px 0;">
+                    <span  style="float:left; margin:0 0px 0px 0;">
 
-                    </span><span id="track-msg-sucss"></span></p>
+                    </span><span style="float:left;" id="track-msg-sucss"></span></p>
             </div>
-            <div id="dialog-error" title="Action" style="display: none">
+            <div id="dialog-error" title="Personnel Tracker" style="display: none">
                 <p>
-                    <span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 20px 0;">
+                    <span  style="float:left; margin:0 0px 0px 0;">
 
-                    </span><span id="track-msg-err"></span></p>
+                    </span><span style="float:left;" id="track-msg-err"></span></p>
             </div>
-            <div id="dialog-savesession" title="Action" style="display: none">
+            <div id="dialog-savesession" title="Personnel Tracker" style="display: none">
                 <p>
-                    <span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 20px 0;">
+                    <span  style="float:left; margin:0 0px 0px 0;">
 
-                    </span><span id="track-msg-sessn">Do you want to save the session?</span></p>
+                    </span><span style="float:left;" id="track-msg-sessn">Do you want to save the session?</span></p>
             </div>
         </div>
         <?php if ($userTrackData['is_on_track'] == 1) { ?>
-                                                    <div class="panel-body map-show" style="padding: 0">
-                                                        <h3>Location on Map</h3>
-                                                        <div id="dvMap" style="width: 100%; height: 600px"></div>
+            <div class="panel-body map-show" style="padding: 0">
+                <h3>Location on Map</h3>
+                <div id="dvMap" style="width: 100%; height: 600px"></div>
 
-                                                    </div>
-                                                <?php } ?>
+            </div>
+        <?php } ?>
         <script type="text/javascript">
             var map;
 
@@ -247,7 +250,7 @@ $userTrackData = $admin->getUserTrackingDetalis(base64_decode($_GET['id']));
 
                 mapData();
                 map = new google.maps.Map(document.getElementById("dvMap"));
-                
+
             });
 
             (function ($) {
@@ -278,7 +281,6 @@ $userTrackData = $admin->getUserTrackingDetalis(base64_decode($_GET['id']));
                     data: data,
                     success: function (result) {
                         if (result.status == true) {
-                            ServerManager.sendChatMessage('<?php echo $userTrackData['uniqueCode'] . '@personneltracker' ?>', result.data);
                             $('#track-msg-sucss').html(result.message);
                             $("#dialog-confirm").dialog({
                                 resizable: false,
@@ -295,6 +297,7 @@ $userTrackData = $admin->getUserTrackingDetalis(base64_decode($_GET['id']));
                                     $('.noOverlayDialog').next('div').css({'opacity': 0.0});
                                 }
                             });
+                            ServerManager.sendChatMessage('<?php echo $userTrackData['uniqueCode'] . '@personneltracker' ?>', result.data);
 
                         } else {
                             $('#track-msg-err').html(result.message);
@@ -376,9 +379,9 @@ $userTrackData = $admin->getUserTrackingDetalis(base64_decode($_GET['id']));
             }
 
             function generatemap(data) {
-            if(data){
+                if (data) {
 //                $('.map-show').show();
-            }
+                }
                 var markers = data;
                 var center;
                 for (i = 0; i < markers.length; i++) {
@@ -444,5 +447,10 @@ $userTrackData = $admin->getUserTrackingDetalis(base64_decode($_GET['id']));
             }
 
         </script>
+        <script>
+            var timezone = jstz.determine();
+            $('.def-local').val(timezone.name());
+        </script>
+
     </body>
 </html>

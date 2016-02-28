@@ -89,17 +89,17 @@ if (!$_SESSION['admin_login']) {
                             <div class="panel-heading">
                                 <div class="row">
                                     <div class="col-xs-3">
-                                        <i class="fa fa-comments fa-5x"></i>
+                                        <i class="fa fa-user fa-5x"></i>
                                     </div>
                                     <?php if ($_SESSION['is_super'] == 1) { ?>
                                         <div class="col-xs-9 text-right">
                                             <div class="huge"><?php echo $admin->getCountAdmin(); ?></div>
-                                            <div>Admin Users!</div>
+                                            <div>Admin Users</div>
                                         </div>
                                     <?php } elseif ($_SESSION['is_super'] == 0) { ?>
                                         <div class="col-xs-9 text-right">
                                             <div class="huge"><?php echo $admin->getCountUsers(); ?></div>
-                                            <div><a style="color: white" href="users.php" >Total Users!</a></div>
+                                            <div><a style="color: white" href="users.php" >Total Users</a></div>
                                         </div>
                                     <?php } ?>
                                 </div>
@@ -133,7 +133,7 @@ if (!$_SESSION['admin_login']) {
                                         </div>
                                         <div class="col-xs-9 text-right">
                                             <div class="huge"><?php echo $admin->getAllUsersCount() ?></div>
-                                            <div>Users!</div>
+                                            <div>Users</div>
                                         </div>
                                     </div>
                                 </div>
@@ -153,11 +153,11 @@ if (!$_SESSION['admin_login']) {
                             <div class="panel-heading">
                                 <div class="row">
                                     <div class="col-xs-3">
-                                        <i class="fa fa-shopping-cart fa-5x"></i>
+                                        <i class="fa fa-mobile fa-5x"></i>
                                     </div>
                                     <div class="col-xs-9 text-right">
                                         <div class="huge"><?php echo $admin->getRunningSessionCount() ?></div>
-                                        <div>Running sessions!</div>
+                                        <div>Active sessions</div>
                                     </div>
                                 </div>
                             </div>
@@ -176,15 +176,15 @@ if (!$_SESSION['admin_login']) {
                             <div class="panel-heading">
                                 <div class="row">
                                     <div class="col-xs-3">
-                                        <i class="fa fa-support fa-5x"></i>
+                                        <i class="fa fa-question-circle fa-5x"></i>
                                     </div>
                                     <div class="col-xs-9 text-right">
                                         <?php if ($_SESSION['is_super'] == 1) { ?>
                                             <div class="huge"><?php echo $admin->getTotalTicketCounts() ?></div>
                                         <?php } else { ?>
-                                            <div class="huge"></div>
+                                            <div class="huge" style="visibility: hidden">0</div>
                                         <?php } ?>
-                                        <div>Support Tickets!</div>
+                                        <div>Feedback</div>
                                     </div>
                                 </div> 
                             </div>
@@ -199,7 +199,7 @@ if (!$_SESSION['admin_login']) {
                             <?php } elseif ($_SESSION['is_super'] == 0) { ?>
                                 <a href="addTickets.php">
                                     <div class="panel-footer">
-                                        <span class="pull-left">Add Ticket</span>
+                                        <span class="pull-left">Add Feedback</span>
                                         <span class="pull-right"><i class="fa fa-arrow-circle-right"></i></span>
                                         <div class="clearfix"></div>
                                     </div>
@@ -253,7 +253,7 @@ if (!$_SESSION['admin_login']) {
                         <div class="col-lg-6">
                             <div class="panel panel-default">
                                 <div class="panel-heading">
-                                   Recently Added Personnel
+                                   Recently Added User
                                 </div>
                                 <div class="panel-body">
                                     <div class="table-responsive">
@@ -297,7 +297,7 @@ if (!$_SESSION['admin_login']) {
                             </div>
                             <div class="panel-body">
                                 <div class="table-responsive">
-                                    <table class="table">
+                                    <table class="table table-striped table-bordered table-hover">
                                         <thead>
                                             <tr>
                                                 <th>#</th>

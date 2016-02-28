@@ -122,9 +122,9 @@ class itg_admin {
                     die();
                 }
             }
-        }else{
+        } else {
             header("location: dashboard.php");
-                    die();
+            die();
         }
     }
 
@@ -298,7 +298,7 @@ class itg_admin {
         if ($this->_check_db($username, $password)) {
 //ready to login
             global $db;
-            $user_row = $db->get_row("SELECT * FROM `admin_database_info` WHERE `email`='" . $db->escape($username) . "'");
+            $user_row = $db->get_row("SELECT * FROM `admin_database_info` WHERE `email`='" . $db->escape($username) . "' and `is_active`=1");
             if ($user_row->admin_type == self::isSuperAdmin) {
                 $_SESSION['admin_login'] = $username;
                 $userData = (array) $user_row;
@@ -346,7 +346,7 @@ class itg_admin {
     private function _check_db($username, $password) {
         global $db;
 
-        $user_row = $db->get_row("SELECT * FROM `admin_database_info` WHERE `email`='" . $db->escape($username) . "'");
+        $user_row = $db->get_row("SELECT * FROM `admin_database_info` WHERE `email`='" . $db->escape($username) . "' and `is_active`=1");
 //general return
         if (is_object($user_row) && ($user_row->password) == $password)
             return true;
@@ -440,7 +440,7 @@ class itg_admin {
         $getDbName = "select `admindatabase` from `admin_database_info` WHERE `email` = '" . $adminemail . "'";
         $daName = $db->get_col($getDbName);
         $dbUser = new ezSQL_mysql($dbuser, $dbpassword, $daName[0], $dbhost);
-        $count = "SELECT * FROM `user_info` ORDER BY id DESC LIMIT 3 ";
+        $count = "SELECT * FROM `user_info` WHERE `created_at` >= now() - INTERVAL 1 DAY ORDER BY id DESC LIMIT 3";
         $result = $dbUser->get_results($count, ARRAY_A);
         return $result;
     }
@@ -485,9 +485,10 @@ class itg_admin {
         $dbUser->query($userInsert);
         $check = 0;
         $this->sendEmail($email, NULL, $name, $check, $secretCode);
-        $redirectUrl = 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
-        header("Location: " . $redirectUrl . "?msg=User has been successfully added");
-        die();
+        $result = array();
+        $result['status'] = true;
+        echo json_encode($result);
+        exit(0);
     }
 
     public function deleteUser() {
@@ -559,8 +560,15 @@ class itg_admin {
         global $dbhost;
         global $dbpassword;
         global $dbuser;
-        $data['sdate'] = gmdate('Y-m-d H:i:s', strtotime($data['sdate']));
-        $data['edate'] = gmdate('Y-m-d H:i:s', strtotime($data['edate']));
+        $timezone = (string) $data['default_locale'];
+        $utc_date = DateTime::createFromFormat(
+                        'Y-m-d H:i:s', $data['sdate'], new DateTimeZone($timezone));
+        $utc_date->setTimeZone(new DateTimeZone('UTC'));
+        $utc_date1 = DateTime::createFromFormat(
+                        'Y-m-d H:i:s', $data['edate'], new DateTimeZone($timezone));
+        $utc_date1->setTimeZone(new DateTimeZone('UTC'));
+        $data['sdate'] = $utc_date->format('Y-m-d H:i:s');
+        $data['edate'] = $utc_date1->format('Y-m-d H:i:s');
         try {
             if (!is_numeric($data['interval'])) {
                 $result['status'] = FALSE;
@@ -645,8 +653,7 @@ class itg_admin {
         }
         if ($check == 0) {
             $message = $this->userEmailTemplate();
-            $message = str_replace("\$uname", $email, $message);
-            $message = str_replace("\$name", $name, $message);
+            $message = str_replace("\$uname", $name, $message);
             $message = str_replace("\$code", $secretCode, $message);
         }
         $subject = 'PersonnelTracker:Account successfully created';
@@ -677,8 +684,8 @@ class itg_admin {
         $message = '<html><body>';
         $message .= '<table width="100%"; rules="all" style="border:1px solid #3A5896;" cellpadding="10">';
         $message .= "<tr><td><img src='https://www.google.co.in/url?sa=i&rct=j&q=&esrc=s&source=images&cd=&cad=rja&uact=8&ved=0CAcQjRxqFQoTCO_DiqDM88gCFYiMlAodRfMEnw&url=http%3A%2F%2Fwww.act.is%2Fportfolio%2FTracker&psig=AFQjCNEp7_PIZgpRGuu8eGGil5g4wWQicw&ust=1446617488324832' alt='Personnel Tracker' /></td></tr>";
-        $message .= "<tr><td colspan=2>Dear \$name,<br /><br />You account has been created.</td></tr>";
-        $message .= "<tr><td colspan=2 font='colr:#999999;'><I>Username: \$uname </I></td></tr>";
+        $message .= "<tr><td colspan=2> Dear \$uname, Your account has been created. Please open the Personnel Tracker App on your
+phone and input the Account Code seen below</td></tr>";
         $message .= "<tr><td colspan=2 font='colr:#999999;'><I>secretCode: \$code </I></td></tr>";
         $message .= "</table>";
         $message .= "</body></html>";
@@ -711,6 +718,7 @@ class itg_admin {
         global $dbhost;
         global $dbpassword;
         global $dbuser;
+        $result = array();
         try {
             $adminemail = $_SESSION['admin_login'];
             $getPassword = "select `password` from `admin_database_info` WHERE `email` = '" . $adminemail . "'";
@@ -720,19 +728,25 @@ class itg_admin {
                     $updatePassword = 'UPDATE `admin_database_info` SET `password` = "' . md5($data['password']) . '" WHERE `email` = "' . $adminemail . '"';
                     $db->query($updatePassword);
                     $msg = 'Your password has been updated!';
-                    header("Location: settings.php?msg=" . $msg);
+                    $result['msg'] = $msg;
+                    $result['status'] = TRUE;
                 } else {
                     $msg = 'Password miss matched! Try again  !';
-                    header("Location: settings.php?msg=" . $msg);
+                    $result['msg'] = $msg;
+                    $result['status'] = FALSE;
                 }
             } else {
                 $msg = 'Your password did not matched.Please try again!';
-                header("Location: settings.php?msg=" . $msg);
+                $result['msg'] = $msg;
+                $result['status'] = FALSE;
             }
         } catch (Exception $e) {
             $msg = $e->getMessage();
-            header("Location: settings.php?msg=" . $msg);
+            $result['msg'] = $msg;
+            $result['status'] = FALSE;
         }
+        echo json_encode($result);
+        exit(0);
     }
 
     public function getTrackedData($data) {
@@ -794,6 +808,26 @@ class itg_admin {
         }
     }
 
+    function deleteSavedSession($sessionId) {
+        global $db;
+        global $dbhost;
+        global $dbpassword;
+        global $dbuser;
+        try {
+            $adminemail = $admin = $_SESSION['admin_login'];
+            $getDbName = "select `admindatabase` from `admin_database_info` WHERE `email` = '" . $adminemail . "'";
+            $daName = $db->get_col($getDbName);
+            $dbUser = new ezSQL_mysql($dbuser, $dbpassword, $daName[0], $dbhost);
+            $selectData = 'DELETE from `user_session_details` WHERE  `id`="' . $sessionId . '"';
+            $dbUser->query($selectData);
+            $result['success'] = TRUE;
+            echo json_encode($result);
+        } catch (Exception $e) {
+            $msg = $e->getMessage();
+            return FALSE;
+        }
+    }
+
     function getCurrentTimeFormat($date) {
 
         if ($date) {
@@ -807,26 +841,34 @@ class itg_admin {
         }
     }
 
-    function saveTicket($name, $email, $ticket) {
+    function getUtcTimeFormat($date, $default) {
+
+        if ($date) {
+            $date = new DateTime($date, new DateTimeZone($default));
+            $date->setTimezone(new DateTimeZone('UTC'));
+            return $date->format('Y-m-d H:i:s');
+        } else {
+            return '';
+        }
+    }
+
+    function saveTicket($name, $email, $company, $ticket) {
         global $db;
         global $dbhost;
         global $dbpassword;
         global $dbuser;
         try {
-            $query = 'INSERT INTO `supportTicket` (`name`,`email`,`ticket`) VALUES ("' . $name . '","' . $email . '","' . $ticket . '")';
+            $query = 'INSERT INTO `supportTicket` (`name`,`email`,`company`,`ticket`) VALUES ("' . $name . '","' . $email . '","' . $company . '","' . $ticket . '")';
             if ($db->query($query)) {
-                $msg = 'Your ticket has been submitted!';
-                header("Location: addTickets.php?msg=" . $msg);
-                exit(0);
+                $result['status'] = TRUE;
             } else {
-                $msg = 'Some error occurred! Try again  !';
-                header("Location: addTickets.php?msg=" . $msg);
-                exit(0);
+                $result['status'] = false;
             }
         } catch (Exception $e) {
-            header("Location: addTickets.php?msg=" . $e->getMessage());
-            exit(0);
+            $result['status'] = FALSE;
         }
+        echo json_encode($result);
+        exit(0);
     }
 
     function getTotalTicketCounts() {
@@ -897,8 +939,8 @@ class itg_admin {
             return $msg;
         }
     }
-    
-    public function getRunningSession(){
+
+    public function getRunningSession() {
         global $db;
         global $dbhost;
         global $dbpassword;
@@ -915,7 +957,6 @@ class itg_admin {
             $msg = $e->getMessage();
             return FALSE;
         }
-        
     }
 
     public function getRecentSession() {

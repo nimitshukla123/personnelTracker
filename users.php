@@ -150,7 +150,7 @@ if ($_GET['op'] == "delete") {
         </div>
         <script type="text/javascript">
               ServerManager.connect('http://52.24.255.248:7070', 'personneltracker', '<?php echo $_SESSION['data']['admindatabase'] . '@personneltracker' ?>', '<?php echo $_SESSION['data']['databasepassword'] ?>', 'roster_entry');
-            function userStatus(uid,status){console.log('hii');
+            function userStatus(uid,status){
                 var user = uid.substr(0,9).toUpperCase();
                 $('.show-user-status').each(function(){
                 if($(this).attr('id') == user){

@@ -24,14 +24,11 @@ $userSessionData = $admin->getUserSessionData(base64_decode($_GET['id']));
         <link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
         <link href="bower_components/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
         <script src="bower_components/datePicker/jquery.js"></script>
-        <script src="bower_components/datePicker/jquery.datetimepicker.full.js"></script>
-        <link rel="stylesheet" href="bower_components/datePicker/jquery.datetimepicker.css">
-        <script src="bower_components/datePicker/formatDate.js"></script>
-        <script src="js/strophe.js" type="text/javascript"></script>
-        <script src="js/strophe-openfire.js" type="text/javascript"></script>
-        <script src="js/ServerManager.js"></script>
-        <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
         <script type="text/javascript" src="http://maps.googleapis.com/maps/api/js?sensor=false"></script>
+        <script src="bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+        <script src="bower_components/metisMenu/dist/metisMenu.min.js"></script>
+        <script src="bower_components/raphael/raphael-min.js"></script>
+        <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
     </head>
     <body>
         <div id="wrapper">
@@ -101,9 +98,9 @@ $userSessionData = $admin->getUserSessionData(base64_decode($_GET['id']));
                                                 </div>
                                             <?php } else { ?>
                                                 <div class="row">
-                                                    <div class="parent" style="padding-left: 20px ">
-                                                        <h4>Available saved session</h4>
-                                                        <div class="show-session">
+                                                    <div class="parent" style="padding-left: 20px;">
+                                                        <div class="show-session" style="width: 50%;float: left">
+                                                            <h4>Available saved session</h4>
                                                             <label>Select a session to show:</label>
                                                             <select id="session_record" name="session_name" id="session_name">
                                                                 <option value="">Select Session</option>
@@ -118,12 +115,9 @@ $userSessionData = $admin->getUserSessionData(base64_decode($_GET['id']));
                                                                 ?>
                                                             </select>
                                                             <button onclick="getRecordedSession();" type="button">Submit</button>
-
+                                                            <button onclick="deleteRecordedSession();" type="button">Delete</button>
                                                         </div>
                                                     </div>
-                                                </div>
-                                                <div class="row">
-                                                   
                                                 </div>
                                             <?php } ?>
                                         </div>
@@ -135,25 +129,38 @@ $userSessionData = $admin->getUserSessionData(base64_decode($_GET['id']));
                 </div>
             </div>
         </div>
-         <div class="panel-body" style="padding: 0">
-                                                        <h3 style="padding-left: 20px ">Location on Map</h3>
-                                                        <div id="dvMap" style="width: 100%; height: 600px"></div>
+        <div class="panel-body" style="padding: 0">
 
-                                                    </div>
+            <div id="dvMap" style="width: 100%; height: 600px"></div>
+
+        </div>
+        <div id="dialog-deletesession" title="Personnel Tracker" style="display: none">
+            <p>
+                <span  style="float:left; margin:0 0px 0px 0;">
+
+                </span><span style="float:left;" id="track-msg-sessn">Session has been deleted.</span></p>
+        </div>
     </body>
     <script>
+
+
         function getRecordedSession() {
             var session_id = ($('#session_record :selected').val());
+            if (session_id == '') {
+                alert('select a session');
+                return false;
+            }
             $.ajax({
                 url: 'getSavedSession.php',
                 data: {'sessionId': session_id},
                 type: 'post',
                 success: function (result) {
                     var markers = JSON.parse(result);
-                    var map;var center;
-                     for (i = 0; i < markers.length; i++) {
-                        center =  new google.maps.LatLng(markers[i][1], markers[i][2]);
-                        }
+                    var map;
+                    var center;
+                    for (i = 0; i < markers.length; i++) {
+                        center = new google.maps.LatLng(markers[i][1], markers[i][2]);
+                    }
                     var mapOptions = {center: center, zoom: 3,
                         mapTypeId: google.maps.MapTypeId.ROADMAP};
                     function initialize() {
@@ -165,19 +172,19 @@ $userSessionData = $admin->getUserSessionData(base64_decode($_GET['id']));
                             console.log(userCoor[i][1], userCoor[i][2]);
                             userCoorPath.push(new google.maps.LatLng(userCoor[i][1], userCoor[i][2]));
                         }
-                        
+
                         // Create a new LatLngBounds object
-                                                                var markerBounds = new google.maps.LatLngBounds();
+                        var markerBounds = new google.maps.LatLngBounds();
 
-    // Add your points to the LatLngBounds object.
-                                                                for (i = 0; i < markers.length; i++) {
-                                                                    var point = new google.maps.LatLng(markers[i][1], markers[i][2]);
-                                                                    markerBounds.extend(point);
-                                                                }
+                        // Add your points to the LatLngBounds object.
+                        for (i = 0; i < markers.length; i++) {
+                            var point = new google.maps.LatLng(markers[i][1], markers[i][2]);
+                            markerBounds.extend(point);
+                        }
 
-    // Then you just call the fitBounds method and the Maps widget does all rest.
-                                                                map.fitBounds(markerBounds);
-                        
+                        // Then you just call the fitBounds method and the Maps widget does all rest.
+                        map.fitBounds(markerBounds);
+
 
 
                         var userCoordinate = new google.maps.Polyline({
@@ -215,6 +222,39 @@ $userSessionData = $admin->getUserSessionData(base64_decode($_GET['id']));
                     google.maps.event.addDomListener(window, 'load', initialize);
 
                 }
+            });
+        }
+
+        function deleteRecordedSession() {
+            var session_id = ($('#session_record :selected').val());
+            if (session_id == '') {
+                alert('select a session');
+                return false;
+            }
+            $.ajax({
+            url: 'getSavedSession.php',
+                    data: {'sessionId': session_id, 'delete':1},
+                    type: 'post',
+                    dataType:'json',
+                    success: function(data) {
+                        if (data.success) {
+                            $("#dialog-deletesession").dialog({
+                                resizable: false,
+                                height: 180,
+                                modal: true,
+                                dialogClass: "noOverlayDialog",
+                                buttons: {
+                                    "Ok": function () {
+                                        $(this).dialog("close");
+                                        window.location.reload();
+                                    },
+                                },
+                                open: function (event, ui) {
+                                    $('.noOverlayDialog').next('div').css({'opacity': 0.0});
+                                }
+                            });
+                        }
+                        }
             });
         }
     </script>
