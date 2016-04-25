@@ -26,7 +26,7 @@ if ($_GET['op'] == "delete") {
     </head>
     <body>
         <div id="wrapper">
-            <nav class="navbar navbar-default navbar-static-top" role="navigation" style="margin-bottom: 0">
+          <nav class="navbar navbar-default navbar-static-top" role="navigation" style="margin-bottom: 0">
                 <div class="navbar-header">
                     <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
                         <span class="sr-only">Toggle navigation</span>
@@ -41,7 +41,7 @@ if ($_GET['op'] == "delete") {
                         <a class="dropdown-toggle" data-toggle="dropdown" href="#">
                             <i class="fa fa-bars fa-fw"></i>  <i class="fa fa-caret-down"></i>
                         </a>
-                       <ul class="dropdown-menu dropdown-user">
+                        <ul class="dropdown-menu dropdown-user">
                             <li><a href="adminProfile.php"><i class="fa fa-user fa-fw"></i> User Profile</a>
                             </li>
                             <li><a href="settings.php"><i class="fa fa-gear fa-fw"></i> Settings</a>
@@ -52,18 +52,21 @@ if ($_GET['op'] == "delete") {
                         </ul>
                     </li>
                 </ul>
-                <div class="navbar-default sidebar" role="navigation">
+                <div class="navigation">
                     <div class="sidebar-nav navbar-collapse">
-                        <ul class="nav" id="side-menu">
-                            <li>
+                        <ul class="nav" style="float: left;line-height: 30px">
+                            <li style="float: left">
                                 <a href="dashboard.php"><i class="fa fa-dashboard fa-fw"></i> Dashboard</a>
                             </li>
-                            <li class="active">
-                                <a href="admins.php"><i class="fa fa-users"></i> Admin Users</a>
-                            </li>
-                            <li>
+                            <?php if ($_SESSION['is_super'] == 1) { ?>
+                            <li style="float: left">
+                                    <a href="admins.php"><i class="fa fa-users"></i> Admin Users</a>
+                                </li>
+                            <?php } ?>
+                                <li style="float: left">
                                 <a href="users.php"><i class="fa fa-users"></i> Users</a>
                             </li>
+
                         </ul>
                     </div>
                 </div>

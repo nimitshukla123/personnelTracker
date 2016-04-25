@@ -29,6 +29,7 @@ $userSessionData = $admin->getUserSessionData(base64_decode($_GET['id']));
         <script src="bower_components/metisMenu/dist/metisMenu.min.js"></script>
         <script src="bower_components/raphael/raphael-min.js"></script>
         <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+        <script src="http://jawj.github.io/OverlappingMarkerSpiderfier/bin/oms.min.js"></script>
     </head>
     <body>
         <div id="wrapper">
@@ -58,20 +59,21 @@ $userSessionData = $admin->getUserSessionData(base64_decode($_GET['id']));
                         </ul>
                     </li>
                 </ul>
-                <div class="navbar-default sidebar" role="navigation">
+                <div class="navigation">
                     <div class="sidebar-nav navbar-collapse">
-                        <ul class="nav" id="side-menu">
-                            <li>
-                                <a href="dashboard.php"><i class="fa fa-dashboard fa-fw"></i>Dashboard</a>
+                        <ul class="nav" style="float: left;line-height: 30px">
+                            <li style="float: left">
+                                <a href="dashboard.php"><i class="fa fa-dashboard fa-fw"></i> Dashboard</a>
                             </li>
                             <?php if ($_SESSION['is_super'] == 1) { ?>
-                                <li>
+                                <li style="float: left">
                                     <a href="admins.php"><i class="fa fa-users"></i> Admin Users</a>
                                 </li>
                             <?php } ?>
-                            <li>
+                            <li style="float: left">
                                 <a href="users.php"><i class="fa fa-users"></i> Users</a>
                             </li>
+
                         </ul>
                     </div>
                 </div>
@@ -83,7 +85,7 @@ $userSessionData = $admin->getUserSessionData(base64_decode($_GET['id']));
                 <div class="container-fluid">
                     <div class="row">
                         <div class="col-lg-12">
-                            <h1 class="page-header">Session List</h1>
+                            <h1 class="page-header"> Saved Sessions</h1>
                         </div>
                     </div>
                     <div class="row">
@@ -100,22 +102,26 @@ $userSessionData = $admin->getUserSessionData(base64_decode($_GET['id']));
                                                 <div class="row">
                                                     <div class="parent" style="padding-left: 20px;">
                                                         <div class="show-session" style="width: 50%;float: left">
-                                                            <h4>Available saved session</h4>
                                                             <label>Select a session to show:</label>
-                                                            <select id="session_record" name="session_name" id="session_name">
+                                                            <select style="margin-left: 20px" id="session_record" name="session_name" id="session_name">
                                                                 <option value="">Select Session</option>
                                                                 <?php
                                                                 $i = 1;
                                                                 foreach ($userSessionData as $value) {
+                                                                    $dates = (json_decode($value['data'], TRUE));
+                                                                    $firstDate = date('dS M Y g:i A', strtotime(key($dates[0])));
+                                                                    $lastDate = date('dS M Y g:i A', strtotime(key(end($dates))));
                                                                     ?>
-                                                                    <option value="<?php echo $value['id'] ?>"><?php echo 'Session' . $i; ?></option>>
+                                                                    <option value="<?php echo $value['id'] ?>"><?php echo $firstDate . ' - ' . $lastDate; ?></option>>
                                                                     <?php
                                                                     $i++;
                                                                 }
                                                                 ?>
                                                             </select>
-                                                            <button onclick="getRecordedSession();" type="button">Submit</button>
-                                                            <button onclick="deleteRecordedSession();" type="button">Delete</button>
+                                                        </div>
+                                                        <div class="opereations" style="padding: 26px 0 0 0">
+                                                            <button class="startbtn" onclick="getRecordedSession();" type="button">Submit</button>
+                                                            <button class="stopbtn" onclick="deleteRecordedSession();" type="button">Delete</button>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -163,19 +169,18 @@ $userSessionData = $admin->getUserSessionData(base64_decode($_GET['id']));
                     }
                     var mapOptions = {center: center, zoom: 3,
                         mapTypeId: google.maps.MapTypeId.ROADMAP};
+
                     function initialize() {
                         map = new google.maps.Map(document.getElementById("dvMap"), mapOptions);
-
+                        var oms = new OverlappingMarkerSpiderfier(map);
                         userCoor = markers;
                         var userCoorPath = [];
                         for (i = 0; i < userCoor.length; i++) {
                             console.log(userCoor[i][1], userCoor[i][2]);
                             userCoorPath.push(new google.maps.LatLng(userCoor[i][1], userCoor[i][2]));
                         }
-
                         // Create a new LatLngBounds object
                         var markerBounds = new google.maps.LatLngBounds();
-
                         // Add your points to the LatLngBounds object.
                         for (i = 0; i < markers.length; i++) {
                             var point = new google.maps.LatLng(markers[i][1], markers[i][2]);
@@ -184,9 +189,6 @@ $userSessionData = $admin->getUserSessionData(base64_decode($_GET['id']));
 
                         // Then you just call the fitBounds method and the Maps widget does all rest.
                         map.fitBounds(markerBounds);
-
-
-
                         var userCoordinate = new google.maps.Polyline({
                             path: userCoorPath,
                             strokeColor: "#FF0000",
@@ -199,24 +201,43 @@ $userSessionData = $admin->getUserSessionData(base64_decode($_GET['id']));
 
                         var marker, i;
 
+                        var length = userCoor.length;
+                        var markerData = [];
                         for (i = 0; i < userCoor.length; i++) {
-                            marker = new google.maps.Marker({
-                                position: new google.maps.LatLng(userCoor[i][1], userCoor[i][2]),
-                                map: map
+                            var index = i;
+                            if (i == (length - 1)) {
+                                marker = new google.maps.Marker({
+                                    position: new google.maps.LatLng(userCoor[i][1], userCoor[i][2]),
+                                    icon: new google.maps.MarkerImage('http://maps.google.com/mapfiles/ms/icons/blue.png'),
+                                    map: map
+                                });
+                            }else if(i == 0){
+                                 marker = new google.maps.Marker({
+                                    position: new google.maps.LatLng(userCoor[i][1], userCoor[i][2]),
+                                    icon: new google.maps.MarkerImage('http://54.191.56.95/images/firstMarker.png'),
+                                    map: map
                             });
-
-
-                            google.maps.event.addListener(marker, 'click', (function (marker, i) {
+                        }
+                            else {
+                                marker = new google.maps.Marker({
+                                    position: new google.maps.LatLng(userCoor[i][1], userCoor[i][2]),
+                                    map: map,
+                                });
+                            }
+                            google.maps.event.addListener(marker, 'mouseover', (function (marker, i) {
                                 return function () {
-                                    infowindow.setContent(userCoor[i][0]);
+                                    infowindow.setContent('Pin ' + userCoor[i][3]+' ,LocationTime '+userCoor[i][0]);
                                     infowindow.open(map, marker);
                                 }
                             })(marker, i));
-
-
-
+                            google.maps.event.addListener(marker, 'mouseout', (function (marker, i) {
+                                return function () {
+                                    infowindow.setContent('');
+                                    infowindow.close();
+                                }
+                            })(marker, i));
+                            oms.addMarker(marker);
                         }
-
                     }
                     initialize();
                     google.maps.event.addDomListener(window, 'load', initialize);
@@ -232,29 +253,29 @@ $userSessionData = $admin->getUserSessionData(base64_decode($_GET['id']));
                 return false;
             }
             $.ajax({
-            url: 'getSavedSession.php',
-                    data: {'sessionId': session_id, 'delete':1},
-                    type: 'post',
-                    dataType:'json',
-                    success: function(data) {
-                        if (data.success) {
-                            $("#dialog-deletesession").dialog({
-                                resizable: false,
-                                height: 180,
-                                modal: true,
-                                dialogClass: "noOverlayDialog",
-                                buttons: {
-                                    "Ok": function () {
-                                        $(this).dialog("close");
-                                        window.location.reload();
-                                    },
+                url: 'getSavedSession.php',
+                data: {'sessionId': session_id, 'delete': 1},
+                type: 'post',
+                dataType: 'json',
+                success: function (data) {
+                    if (data.success) {
+                        $("#dialog-deletesession").dialog({
+                            resizable: false,
+                            height: 180,
+                            modal: true,
+                            dialogClass: "noOverlayDialog",
+                            buttons: {
+                                "Ok": function () {
+                                    $(this).dialog("close");
+                                    window.location.reload();
                                 },
-                                open: function (event, ui) {
-                                    $('.noOverlayDialog').next('div').css({'opacity': 0.0});
-                                }
-                            });
-                        }
-                        }
+                            },
+                            open: function (event, ui) {
+                                $('.noOverlayDialog').next('div').css({'opacity': 0.0});
+                            }
+                        });
+                    }
+                }
             });
         }
     </script>

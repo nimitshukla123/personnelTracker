@@ -2,8 +2,8 @@
 
 error_reporting(false);
 /** Include the database file */
-include_once './db.php';
-require_once './smtp/PHPMailerAutoload.php';
+include_once realpath(dirname(__FILE__) . '/db.php');
+include_once realpath(dirname(__FILE__) . '/smtp/PHPMailerAutoload.php');
 
 /**
  * The main class of login
@@ -33,6 +33,7 @@ class itg_admin {
      * @var array
      */
     var $get = array();
+    var $urlToHIt;
 
     /**
      * The constructor function of admin class
@@ -110,7 +111,7 @@ class itg_admin {
 //cookie found, is it really someone from the
                 if ($this->_check_db($_COOKIE['username'], $_COOKIE['password'])) {
                     global $db;
-                    $user_row = $db->get_row("SELECT * FROM `admin_database_info` WHERE `email`='" . $db->escape($_COOKIE['username']) . "'");
+                    $user_row = $db->get_row("SELECT * FROM `admin_database_info` WHERE `email`='" . $db->escape($_COOKIE['username']) . "' AND `is_active`=1");
                     if ($user_row->admin_type == self::isSuperAdmin) {
                         $_SESSION['admin_login'] = $username;
                         $_SESSION['is_super'] = 1;
@@ -132,6 +133,7 @@ class itg_admin {
         try {
             global $db;
             global $dbhost;
+            $response = array();
             $name = $this->post['username'];
             $email = $this->post['email'];
             $contact = $this->post['contactno'];
@@ -166,19 +168,20 @@ class itg_admin {
             $db->query($createUser);
             $privilage = "grant all privileges on " . $dbname . ".* to '" . $dbname . "'@'" . $dbhost . "' identified by '" . $password . "'";
             $db->query($privilage);
-            $addAdmininfo = "INSERT INTO `admin_database_info`(`name`, `email`,`contactno`, `admindatabase`, `databasepassword`, `created_at`, `password`, `admin_type`,`is_active`) 
-		VALUES ('" . $name . "','" . $email . "','" . $contact . "','" . $dbname . "','" . $password . "','" . date('Y-m-d H:i:s') . "','" . $adminpassword . "','0','1')";
+            $addAdmininfo = "INSERT INTO `admin_database_info`(`name`, `email`,`contactno`, `admindatabase`, `databasepassword`, `created_at`, `password`, `admin_type`,`is_active`,`locale`) 
+		VALUES ('" . $name . "','" . $email . "','" . $contact . "','" . $dbname . "','" . $password . "','" . date('Y-m-d H:i:s') . "','" . $adminpassword . "','0','1','')";
             $db->query($addAdmininfo);
-            $url = $url = 'http://52.24.255.248:9090/plugins/userService/userservice?type=add&secret=toLa16o7&username=' . $dbname . '&password=' . $password . '&name=' . $name . '&email=' . $email . '&groups=PersonnelTrackerGroup';
-            $this->createOpenfireUser($url);
-            $msg = 'admin successfully created';
+            $url = 'http://54.191.56.95:9090/plugins/userService/userservice?type=add&secret=toLa16o7&username=' . $dbname . '&password=' . $password . '&name=' . $name . '&email=' . $email . '&groups=PersonnelTrackerGroup';
             $check = 1;
             $this->sendEmail($email, $this->post['password'], $name, $check, null);
+            $response['status'] = true;
+            $response['url'] = $url;
         } catch (exception $e) {
-            $msg = $e->getMessage();
+            $response['status'] = FALSE;
+            $response['msg'] = $e->getMessage();
         }
-        header('Location: dashboard.php?msg=' . $msg);
-        die();
+        echo json_encode($response);
+        exit(0);
     }
 
     public function adminEmailTemplate() {
@@ -208,9 +211,12 @@ class itg_admin {
   `is_on_track` tinyint(1) NOT NULL,
   `trackStart` timestamp,
   `trackEnd` timestamp,
-  `trackInterval` varchar(255) NOT NULL,
-  `uniqueCode` varchar(255) NOT NULL,
-  `deviceId` varchar(255) NOT NULL,
+  `trackInterval` varchar(255) ,
+  `uniqueCode` varchar(255),
+  `deviceId` varchar(255) ,
+  `token` varchar(255),
+  `devicetype` varchar(255),
+  `cronTrackStatus` varchar(255),
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ";
         $userLocationQuery = "CREATE TABLE IF NOT EXISTS `user_tracking_info` (
@@ -403,7 +409,7 @@ class itg_admin {
         global $dbpassword;
         global $dbuser;
         $adminemail = $admin = $_SESSION['admin_login'];
-        $getDbName = "select `admindatabase` from `admin_database_info` WHERE `email` = '" . $adminemail . "'";
+        $getDbName = "select `admindatabase` from `admin_database_info` WHERE `email` = '" . $adminemail . "' AND `is_active`=1";
         $daName = $db->get_col($getDbName);
         $dbUser = new ezSQL_mysql($dbuser, $dbpassword, $daName[0], $dbhost);
         $count = "SELECT * FROM `user_info` WHERE `email` = '" . $email . "' AND `is_active` = 1";
@@ -423,7 +429,7 @@ class itg_admin {
         global $dbpassword;
         global $dbuser;
         $adminemail = $admin = $_SESSION['admin_login'];
-        $getDbName = "select `admindatabase` from `admin_database_info` WHERE `email` = '" . $adminemail . "'";
+        $getDbName = "select `admindatabase` from `admin_database_info` WHERE `email` = '" . $adminemail . "' AND `is_active`=1";
         $daName = $db->get_col($getDbName);
         $dbUser = new ezSQL_mysql($dbuser, $dbpassword, $daName[0], $dbhost);
         $count = "SELECT * FROM `user_info` WHERE `is_active`= 1";
@@ -437,10 +443,10 @@ class itg_admin {
         global $dbpassword;
         global $dbuser;
         $adminemail = $admin = $_SESSION['admin_login'];
-        $getDbName = "select `admindatabase` from `admin_database_info` WHERE `email` = '" . $adminemail . "'";
+        $getDbName = "select `admindatabase` from `admin_database_info` WHERE `email` = '" . $adminemail . "' AND `is_active`=1";
         $daName = $db->get_col($getDbName);
         $dbUser = new ezSQL_mysql($dbuser, $dbpassword, $daName[0], $dbhost);
-        $count = "SELECT * FROM `user_info` WHERE `created_at` >= now() - INTERVAL 1 DAY ORDER BY id DESC LIMIT 3";
+        $count = "SELECT * FROM `user_info` WHERE `created_at` >= now() - INTERVAL 1 DAY ORDER BY id DESC";
         $result = $dbUser->get_results($count, ARRAY_A);
         return $result;
     }
@@ -451,10 +457,10 @@ class itg_admin {
         global $dbpassword;
         global $dbuser;
         $adminemail = $admin = $_SESSION['admin_login'];
-        $getDbName = "select `admindatabase` from `admin_database_info` WHERE `email` = '" . $adminemail . "'";
+        $getDbName = "select `admindatabase` from `admin_database_info` WHERE `email` = '" . $adminemail . "' AND `is_active`=1";
         $daName = $db->get_col($getDbName);
         $dbUser = new ezSQL_mysql($dbuser, $dbpassword, $daName[0], $dbhost);
-        $count = "SELECT * FROM `user_info` WHERE `is_active`= 1";
+        $count = "SELECT * FROM `user_info` WHERE `is_active`= 1 ORDER BY name";
         $result = $dbUser->get_results($count, ARRAY_A);
         return $result;
     }
@@ -464,10 +470,10 @@ class itg_admin {
         global $dbhost;
         global $dbpassword;
         global $dbuser;
+        $result = array();
         $adminemail = $_SESSION['admin_login'];
-        $getDbName = "select `admindatabase` from `admin_database_info` WHERE `email` = '" . $adminemail . "'";
+        $getDbName = "select `admindatabase` from `admin_database_info` WHERE `email` = '" . $adminemail . "' AND `is_active`=1";
         $daName = $db->get_col($getDbName);
-
         $dbUser = new ezSQL_mysql($dbuser, $dbpassword, $daName[0], $dbhost);
         $name = $this->post['username'];
         $email = $this->post['email'];
@@ -479,16 +485,20 @@ class itg_admin {
             die();
         }
         $digits = 3;
-        $secretCode = $daName[0] . '_' . rand(pow(10, $digits - 1), pow(10, $digits) - 1);
-        $userInsert = "INSERT INTO `user_info`(`name`, `email`,`uniqueCode`,`created_at`,`is_on_track`, `is_active`,`company`,`contact`) "
-                . "VALUES ('" . $name . "','" . $email . "','" . $secretCode . "','" . (date('Y-m-d H:i:s')) . "',0,1,'" . $company . "','" . $contact . "')";
-        $dbUser->query($userInsert);
-        $check = 0;
+        try {
+            $secretCode = $daName[0] . '_' . rand(pow(10, $digits - 1), pow(10, $digits) - 1);
+            $userInsert = "INSERT INTO `user_info`(`name`, `email`,`uniqueCode`,`created_at`,`is_on_track`,`is_active`,`company`,`contact`,`deviceId`,`token`,`devicetype`,`cronTrackStatus`)"
+                    . "VALUES ('" . $name . "','" . $email . "','" . $secretCode . "','" . (date('Y-m-d H:i:s')) . "',0,1,'" . $company . "','" . $contact . "','','','','')";
+            $dbUser->query($userInsert);
+            $check = 0;
+            $result['status'] = true;
+        } catch (Exception $e) {
+            $result['status'] = FALSE;
+            echo $e->getMessage();
+        }
         $this->sendEmail($email, NULL, $name, $check, $secretCode);
-        $result = array();
-        $result['status'] = true;
-        echo json_encode($result);
-        exit(0);
+        print_r(json_encode($result));
+        exit;
     }
 
     public function deleteUser() {
@@ -497,14 +507,29 @@ class itg_admin {
         global $dbpassword;
         global $dbuser;
         $adminemail = $admin = $_SESSION['admin_login'];
-        $getDbName = "select `admindatabase` from `admin_database_info` WHERE `email` = '" . $adminemail . "'";
+        $getDbName = "select `admindatabase` from `admin_database_info` WHERE `email` = '" . $adminemail . "' AND `is_active`=1";
         $daName = $db->get_col($getDbName);
         $dbUser = new ezSQL_mysql($dbuser, $dbpassword, $daName[0], $dbhost);
         $id = $this->get['id'];
+        $userEmail = "SELECT `email` FROM `user_info` WHERE `id`=" . $id;
+        $data = $dbUser->get_results($userEmail, ARRAY_A);
+        $deleteSession = "DELETE  FROM `user_tracking_info` WHERE `email`= '" . $data[0]['email'] . "'";
+        $result = $dbUser->query($deleteSession);
+        $deleteRecordedSession = "DELETE  FROM `user_session_details` WHERE `email`= '" . $data[0]['email'] . "'";
+        $result = $dbUser->query($deleteRecordedSession);
+        $deleteopenfireuser = "DELETE  FROM `ofUser` WHERE `email`= '" . $data[0]['email'] . "'";
+        $result = $dbUser->query($deleteopenfireuser);
         $count = "DELETE  FROM `user_info` WHERE `id`=" . $id;
         $result = $dbUser->query($count);
-        header("Location: dashboard.php?msg=User has been successfully deleted");
-        die();
+        if ($result) {
+            $data['success'] = TRUE;
+            $data['msg'] = 'User successfully deleted';
+        } else {
+            $data['success'] = FALSE;
+            $data['msg'] = 'Some error occured. Try again later.';
+        }
+        echo json_encode($data);
+        exit;
     }
 
     public function getAllUsers() {
@@ -512,7 +537,7 @@ class itg_admin {
         global $dbhost;
         global $dbpassword;
         global $dbuser;
-        $getDbName = "select `admindatabase` from `admin_database_info`";
+        $getDbName = "select `admindatabase` from `admin_database_info` WHERE `is_active`=1";
         $daName = $db->get_results($getDbName, ARRAY_A);
         foreach ($daName as $value) {
             if ($value['admindatabase'] != '') {
@@ -536,7 +561,7 @@ class itg_admin {
         global $dbhost;
         global $dbpassword;
         global $dbuser;
-        $getDbName = "select `admindatabase` from `admin_database_info`";
+        $getDbName = "select `admindatabase` from `admin_database_info` WHERE `is_active`=1";
         $daName = $db->get_results($getDbName, ARRAY_A);
         foreach ($daName as $value) {
             if ($value['admindatabase'] != '') {
@@ -553,6 +578,48 @@ class itg_admin {
             }
         }
         return count($final);
+    }
+
+    public function addMultipleSession($details) {
+        $data = $details['data'];
+        $users = $details['users'];
+        global $db;
+        global $dbhost;
+        global $dbpassword;
+        global $dbuser;
+        $timezone = (string) $data['default_locale'];
+        $utc_date = DateTime::createFromFormat(
+                        'Y-m-d H:i:s', $data['sdate'], new DateTimeZone($timezone));
+        $utc_date->setTimeZone(new DateTimeZone('UTC'));
+        $utc_date1 = DateTime::createFromFormat(
+                        'Y-m-d H:i:s', $data['edate'], new DateTimeZone($timezone));
+        $utc_date1->setTimeZone(new DateTimeZone('UTC'));
+        $data['sdate'] = $utc_date->format('Y-m-d H:i:s');
+        $data['edate'] = $utc_date1->format('Y-m-d H:i:s');
+        try {
+            if (!is_numeric($data['interval'])) {
+                $result['status'] = FALSE;
+                $result['message'] = 'you have provided wrong values';
+            } else {
+                $adminemail = $admin = $_SESSION['admin_login'];
+                $getDbName = "select `admindatabase` from `admin_database_info` WHERE `email` = '" . $adminemail . "' AND `is_active`=1";
+                $daName = $db->get_col($getDbName);
+                $dbUser = new ezSQL_mysql($dbuser, $dbpassword, $daName[0], $dbhost);
+                foreach ($users as $userId) {
+                    $query = 'UPDATE `user_info` SET `is_on_track` = 1,`trackStart` ="' . ($data['sdate']) . '",`trackEnd` = "' . ($data['edate']) . '",`cronTrackStatus` = 1,`trackInterval` =' . $data['interval'] . ' where id =' . $userId;
+                    $dbUser->query($query);
+                }
+                $result['message'] = 'Your tracking session is about to start.';
+                $result['status'] = TRUE;
+                $result['data'] = json_encode($data);
+            }
+        } catch (Exception $e) {
+            $result['message'] = $e->getMessage();
+            $result['status'] = FALSE;
+        }
+
+        echo json_encode($result);
+        exit();
     }
 
     public function addUserTrackingDetails($data) {
@@ -575,30 +642,39 @@ class itg_admin {
                 $result['message'] = 'you have provided wrong values';
             } else {
                 $adminemail = $admin = $_SESSION['admin_login'];
-                $getDbName = "select `admindatabase` from `admin_database_info` WHERE `email` = '" . $adminemail . "'";
+                $getDbName = "select `admindatabase` from `admin_database_info` WHERE `email` = '" . $adminemail . "' AND `is_active`=1";
                 $daName = $db->get_col($getDbName);
                 $dbUser = new ezSQL_mysql($dbuser, $dbpassword, $daName[0], $dbhost);
-                $query = 'UPDATE `user_info` SET `is_on_track` =' . $data['tracking-status'] . ',`trackStart` ="' . ($data['sdate']) . '",`trackEnd` = "' . ($data['edate']) . '",`trackInterval` =' . $data['interval'] . ' where id =' . $data['user_id'];
+                $query = 'UPDATE `user_info` SET `is_on_track` =' . $data['tracking-status'] . ',`trackStart` ="' . ($data['sdate']) . '",`trackEnd` = "' . ($data['edate']) . '",`trackInterval` =' . $data['interval'] . ' ,`cronTrackStatus` = 1 where id =' . $data['user_id'];
                 $dbUser->query($query);
+                $result['message'] = 'Your tracking session is about to start.';
                 if ($data['save_session'] == 1) {
                     $selectData = 'SELECT * from `user_tracking_info` WHERE `email`=(SELECT `email` FROM `user_info` WHERE `id`= "' . $data['user_id'] . '" and (`locationtime` >= "' . ($data['sdate']) . '" and `locationtime` <= "' . ($data['edate']) . '"))';
                     $locationdata = $dbUser->get_results($selectData, ARRAY_A);
                     if (!empty($locationdata)) {
                         foreach ($locationdata as $value) {
-                            $savedLocationData[] = array($value['locationtime'] => array($value['latitude'], $value['longitude']));
+                            $savedLocationData[] = array(date('dS M Y g:i A', strtotime($this->getLocaleDate($value['locationtime']))) => array($value['latitude'], $value['longitude']));
                         }
                         $userqry = 'SELECT `email`,`uniqueCode` FROM `user_info` WHERE `id`= "' . $data['user_id'] . '"';
                         $resultset = $dbUser->get_results($userqry, ARRAY_A);
                         $insertSession = "INSERT INTO `user_session_details` (`grcid`, `email`,`data`) "
                                 . "VALUES ('" . $resultset[0]['uniqueCode'] . "','" . $resultset[0]['email'] . "','" . json_encode($savedLocationData) . "')";
                         $dbUser->query($insertSession);
-                        $deleteData = 'DELETE  from `user_tracking_info` WHERE `email`=(SELECT `email` FROM `user_info` WHERE `id`= "' . $data['user_id'] . '" and (`locationtime` >= "' . ($data['sdate']) . '" and `locationtime` <= "' . ($data['edate']) . '"))';
+                        $deleteData = 'DELETE  from `user_tracking_info` WHERE `email`=(SELECT `email` FROM `user_info` WHERE `id`= "' . $data['user_id'] . '" )';
                         $dbUser->query($deleteData);
                     }
+                    $result['message'] = 'Tracking session saved.';
+                } else {
+                    $deleteData = 'DELETE  from `user_tracking_info` WHERE `email`=(SELECT `email` FROM `user_info` WHERE `id`= "' . $data['user_id'] . '" and (`locationtime` >= "' . ($data['sdate']) . '" and `locationtime` <= "' . ($data['edate']) . '"))';
+                    $dbUser->query($deleteData);
                 }
                 $result['status'] = TRUE;
-                $result['message'] = 'User details submit successfully!';
                 $result['data'] = json_encode($data);
+                if ($data['save_session'] !== '' && isset($data['save_session']) && $data['save_session'] == 0) {
+                    $result['popup'] = FALSE;
+                } else {
+                    $result['popup'] = TRUE;
+                }
             }
         } catch (Exception $e) {
             $result['message'] = $e->getMessage();
@@ -616,7 +692,7 @@ class itg_admin {
         global $dbuser;
         try {
             $adminemail = $admin = $_SESSION['admin_login'];
-            $getDbName = "select `admindatabase` from `admin_database_info` WHERE `email` = '" . $adminemail . "'";
+            $getDbName = "select `admindatabase` from `admin_database_info` WHERE `email` = '" . $adminemail . "' AND `is_active`=1";
             $daName = $db->get_col($getDbName);
             $dbUser = new ezSQL_mysql($dbuser, $dbpassword, $daName[0], $dbhost);
             $query = 'SELECT * FROM `user_info` WHERE id=' . $id;
@@ -628,22 +704,33 @@ class itg_admin {
         }
     }
 
+    public function getLocaleDate($date) {
+        global $db;
+        $adminemail = $admin = $_SESSION['admin_login'];
+        if (empty($date)) {
+            return '';
+        }
+//        $getlocale = "select `locale` from `admin_database_info` WHERE `email` = '" . $adminemail . "' AND `is_active`=1";
+//        $locale = $db->get_col($getlocale);
+        $utc_date = DateTime::createFromFormat(
+                        'Y-m-d H:i:s', $date, new DateTimeZone('UTC'));
+        $utc_date->setTimeZone(new DateTimeZone($_SESSION['locale']));
+        return $utc_date->format('Y-m-d H:i:s');
+    }
+
     public function createOpenfireUser($url) {
 
-        $ch = curl_init();
+        $this->urlToHIt = $url;
+    }
 
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        $output = curl_exec($ch);
-
-        curl_close($ch);
-        return $output;
+    public function generateOpenFireUrl() {
+        return $this->urlToHIt;
     }
 
     function sendEmail($email, $adminpassword, $name, $check, $secretCode) {
-        $username = 'nimitshukla123@gmail.com';
-        $password = 'canyouseeme';
-        $senderEmail = 'nimitshukla123@gmail.com';
+        $username = 'personneltrackerapp@gmail.com';
+        $password = 'nexus211';
+        $senderEmail = 'personneltrackerapp@gmail.com';
         $senderName = 'Personnel Tracker Team';
         if ($check == 1) {
             $message = $this->adminEmailTemplate();
@@ -656,7 +743,7 @@ class itg_admin {
             $message = str_replace("\$uname", $name, $message);
             $message = str_replace("\$code", $secretCode, $message);
         }
-        $subject = 'PersonnelTracker:Account successfully created';
+        $subject = 'Personnel Tracker : Account Successfully Created';
         $mail = new PHPMailer;
         $mail->isSMTP();
         $mail->SMTPDebug = 0;
@@ -672,21 +759,21 @@ class itg_admin {
         $mail->msgHTML($message);
         $mail->AltBody = 'This is a plain-text message body';
         if (!$mail->send()) {
-            return;
+            $result['status'] = FALSE;
         } else {
             $result['status'] = TRUE;
             $result['msg'] = 'Email has been successfully sent';
-            return;
         }
+        return;
     }
 
     public function userEmailTemplate() {
         $message = '<html><body>';
         $message .= '<table width="100%"; rules="all" style="border:1px solid #3A5896;" cellpadding="10">';
-        $message .= "<tr><td><img src='https://www.google.co.in/url?sa=i&rct=j&q=&esrc=s&source=images&cd=&cad=rja&uact=8&ved=0CAcQjRxqFQoTCO_DiqDM88gCFYiMlAodRfMEnw&url=http%3A%2F%2Fwww.act.is%2Fportfolio%2FTracker&psig=AFQjCNEp7_PIZgpRGuu8eGGil5g4wWQicw&ust=1446617488324832' alt='Personnel Tracker' /></td></tr>";
+        $message .= "<tr><td><img src='http://54.191.56.95/images/logo.png' alt='Personnel Tracker' /></td></tr>";
         $message .= "<tr><td colspan=2> Dear \$uname, Your account has been created. Please open the Personnel Tracker App on your
 phone and input the Account Code seen below</td></tr>";
-        $message .= "<tr><td colspan=2 font='colr:#999999;'><I>secretCode: \$code </I></td></tr>";
+        $message .= "<tr><td colspan=2 font='colr:#999999;'><I>Account Code: \$code </I></td></tr>";
         $message .= "</table>";
         $message .= "</body></html>";
         return $message;
@@ -699,7 +786,7 @@ phone and input the Account Code seen below</td></tr>";
         global $dbuser;
         try {
             $adminemail = $admin = $_SESSION['admin_login'];
-            $getDbName = "select `admindatabase` from `admin_database_info` WHERE `email` = '" . $adminemail . "'";
+            $getDbName = "select `admindatabase` from `admin_database_info` WHERE `email` = '" . $adminemail . "' AND `is_active`=1";
             $daName = $db->get_col($getDbName);
             $dbUser = new ezSQL_mysql($dbuser, $dbpassword, $daName[0], $dbhost);
             $query = 'SELECT `uniqueCode` FROM `user_info` WHERE id=' . $id;
@@ -721,17 +808,17 @@ phone and input the Account Code seen below</td></tr>";
         $result = array();
         try {
             $adminemail = $_SESSION['admin_login'];
-            $getPassword = "select `password` from `admin_database_info` WHERE `email` = '" . $adminemail . "'";
+            $getPassword = "select `password` from `admin_database_info` WHERE `email` = '" . $adminemail . "' AND `is_active`=1";
             $oldPassword = $db->get_col($getPassword);
             if (md5($data['oldPassword']) == $oldPassword[0]) {
                 if ($data['password'] == $data['cpassword']) {
                     $updatePassword = 'UPDATE `admin_database_info` SET `password` = "' . md5($data['password']) . '" WHERE `email` = "' . $adminemail . '"';
                     $db->query($updatePassword);
-                    $msg = 'Your password has been updated!';
+                    $msg = 'Your password has been updated';
                     $result['msg'] = $msg;
                     $result['status'] = TRUE;
                 } else {
-                    $msg = 'Password miss matched! Try again  !';
+                    $msg = 'Password miss matched.Try again.';
                     $result['msg'] = $msg;
                     $result['status'] = FALSE;
                 }
@@ -749,27 +836,56 @@ phone and input the Account Code seen below</td></tr>";
         exit(0);
     }
 
+    function getUtcDate($date) {
+        global $db;
+        $adminemail = $admin = $_SESSION['admin_login'];
+        if (empty($date)) {
+            return '';
+        }
+        $utc_date = DateTime::createFromFormat(
+                        'Y-m-d H:i:s', $date, new DateTimeZone($_SESSION['locale']));
+        $utc_date->setTimeZone(new DateTimeZone('UTC'));
+        return $utc_date->format('Y-m-d H:i:s');
+    }
+
     public function getTrackedData($data) {
         global $db;
         global $dbhost;
         global $dbpassword;
         global $dbuser;
         try {
+            if ($data['tracStat'] != 0) {
+                $locale = (string) $data['locale'];
+                $utc_date = DateTime::createFromFormat(
+                                'Y-m-d H:i:s', $data['trackEnd'], new DateTimeZone($locale));
+                $utc_date->setTimeZone(new DateTimeZone('UTC'));
+                $data['edate'] = strtotime($utc_date->format('Y-m-d H:i:s'));
+                if (strtotime(date('Y-m-d H:i:s')) > $data['edate']) {
+                    $tracking = 0;
+                } else {
+                    $tracking = 1;
+                }
+            } else {
+                $tracking = 1;
+            }
             $adminemail = $admin = $_SESSION['admin_login'];
-            $getDbName = "select `admindatabase` from `admin_database_info` WHERE `email` = '" . $adminemail . "'";
+            $getDbName = "select `admindatabase` from `admin_database_info` WHERE `email` = '" . $adminemail . "' AND `is_active`=1";
             $daName = $db->get_col($getDbName);
             $dbUser = new ezSQL_mysql($dbuser, $dbpassword, $daName[0], $dbhost);
-            $selectData = 'SELECT * from `user_tracking_info` WHERE (`email`= "' . $data['email'] . '"  and (`locationtime` BETWEEN ' . "'" . $data['trackStart'] . "'" . ' AND  ' . "'" . $data['trackEnd'] . "'" . '))';
+            $selectData = 'SELECT * from `user_tracking_info` WHERE (`email`= "' . $data['email'] . '"  and (`locationtime` BETWEEN ' . "'" . $this->getUtcDate($data['trackStart']) . "'" . ' AND  ' . "'" . $this->getUtcDate($data['trackEnd']) . "'" . '))';
             $result = $dbUser->get_results($selectData, ARRAY_A);
+            $pin = 1;
             if (!empty($result)) {
                 foreach ($result as $value) {
-                    $arrayLatLng[] = array($value['locationtime'], $value['latitude'], $value['longitude']);
+                    $date = $this->getLocaleDate($value['locationtime']);
+                    $arrayLatLng[] = array(date('dS M Y g:i A', strtotime($date)), $value['latitude'], $value['longitude'], $pin);
+                    ++$pin;
                 }
-                echo json_encode($arrayLatLng);
-                exit;
             } else {
-                return FALSE;
+                $arrayLatLng = array();
             }
+            $final = array('session_expire' => $tracking, 'data' => $arrayLatLng);
+            echo json_encode($final);
         } catch (Exception $e) {
             $msg = $e->getMessage();
             return FALSE;
@@ -783,15 +899,17 @@ phone and input the Account Code seen below</td></tr>";
         global $dbuser;
         try {
             $adminemail = $admin = $_SESSION['admin_login'];
-            $getDbName = "select `admindatabase` from `admin_database_info` WHERE `email` = '" . $adminemail . "'";
+            $getDbName = "select `admindatabase` from `admin_database_info` WHERE `email` = '" . $adminemail . "' AND `is_active`=1";
             $daName = $db->get_col($getDbName);
             $dbUser = new ezSQL_mysql($dbuser, $dbpassword, $daName[0], $dbhost);
             $selectData = 'SELECT `data` from `user_session_details` WHERE  `id`="' . $sessionId . '"';
             $result = $dbUser->get_results($selectData, ARRAY_A);
             $data = json_decode($result[0]['data'], TRUE);
+            $pin = 1;
             foreach ($data as $value) {
                 foreach ($value as $key1 => $value1) {
-                    $arrayLatLng[] = array($key1, $value1[0], $value1[1]);
+                    $arrayLatLng[] = array($key1, $value1[0], $value1[1], $pin);
+                    ++$pin;
                 }
             }
 
@@ -815,7 +933,7 @@ phone and input the Account Code seen below</td></tr>";
         global $dbuser;
         try {
             $adminemail = $admin = $_SESSION['admin_login'];
-            $getDbName = "select `admindatabase` from `admin_database_info` WHERE `email` = '" . $adminemail . "'";
+            $getDbName = "select `admindatabase` from `admin_database_info` WHERE `email` = '" . $adminemail . "' AND `is_active`=1";
             $daName = $db->get_col($getDbName);
             $dbUser = new ezSQL_mysql($dbuser, $dbpassword, $daName[0], $dbhost);
             $selectData = 'DELETE from `user_session_details` WHERE  `id`="' . $sessionId . '"';
@@ -860,6 +978,31 @@ phone and input the Account Code seen below</td></tr>";
         try {
             $query = 'INSERT INTO `supportTicket` (`name`,`email`,`company`,`ticket`) VALUES ("' . $name . '","' . $email . '","' . $company . '","' . $ticket . '")';
             if ($db->query($query)) {
+                $username = 'personneltrackerapp@gmail.com';
+                $password = 'nexus211';
+                $subject = 'Personnel Tracker Feedback';
+                $message = file_get_contents('./mail.html');
+                $message = str_replace("\$msg", $ticket, $message);
+                $message = str_replace("\$name", $name, $message);
+                $mail = new PHPMailer;
+                $mail->isSMTP();
+                $mail->SMTPDebug = 0;
+                $mail->Debugoutput = 'html';
+                $mail->Host = 'smtp.gmail.com';
+                $mail->SMTPAuth = true;
+                $mail->Username = $username;
+                $mail->Password = $password;
+                $mail->setFrom($email, $name);
+                $mail->addReplyTo($email, $name);
+                $mail->addAddress($username, 'Personnel Tracker Team');
+                $mail->Subject = $subject;
+                $mail->msgHTML($message);
+                if (!$mail->send()) {
+                    $result['status'] = FALSE;
+                } else {
+                    $result['status'] = TRUE;
+                    $result['msg'] = 'Email has been successfully sent';
+                }
                 $result['status'] = TRUE;
             } else {
                 $result['status'] = false;
@@ -928,7 +1071,7 @@ phone and input the Account Code seen below</td></tr>";
         global $dbuser;
         try {
             $adminemail = $admin = $_SESSION['admin_login'];
-            $getDbName = "select `admindatabase` from `admin_database_info` WHERE `email` = '" . $adminemail . "'";
+            $getDbName = "select `admindatabase` from `admin_database_info` WHERE `email` = '" . $adminemail . "' AND `is_active`=1";
             $daName = $db->get_col($getDbName);
             $dbUser = new ezSQL_mysql($dbuser, $dbpassword, $daName[0], $dbhost);
             $selectData = 'SELECT count(*) from `user_info` WHERE  `is_on_track`=1';
@@ -947,7 +1090,7 @@ phone and input the Account Code seen below</td></tr>";
         global $dbuser;
         try {
             $adminemail = $admin = $_SESSION['admin_login'];
-            $getDbName = "select `admindatabase` from `admin_database_info` WHERE `email` = '" . $adminemail . "'";
+            $getDbName = "select `admindatabase` from `admin_database_info` WHERE `email` = '" . $adminemail . "' AND `is_active`=1";
             $daName = $db->get_col($getDbName);
             $dbUser = new ezSQL_mysql($dbuser, $dbpassword, $daName[0], $dbhost);
             $selectData = 'SELECT * from `user_info` WHERE  `is_on_track`=1';
@@ -965,13 +1108,60 @@ phone and input the Account Code seen below</td></tr>";
         global $dbpassword;
         global $dbuser;
         $adminemail = $admin = $_SESSION['admin_login'];
-        $getDbName = "select `admindatabase` from `admin_database_info` WHERE `email` = '" . $adminemail . "'";
+        $getDbName = "select `admindatabase` from `admin_database_info` WHERE `email` = '" . $adminemail . "' AND `is_active`=1";
         $daName = $db->get_col($getDbName);
         $dbUser = new ezSQL_mysql($dbuser, $dbpassword, $daName[0], $dbhost);
-        $count = "SELECT * FROM `user_session_details` ORDER BY id DESC
-      LIMIT 3";
+        $count = "SELECT user_session_details.email,user_session_details.id,user_session_details.grcid,user_info.name,user_info.company FROM `user_session_details` INNER JOIN `user_info` ON user_session_details.grcid = user_info.uniqueCode ORDER BY id DESC";
         $result = $dbUser->get_results($count, ARRAY_A);
         return $result;
+    }
+
+    public function getOfflineUsers() {
+        global $db;
+        $selectOffline = "select `username` from `ofPresence` ";
+        $result = $db->get_results($selectOffline, ARRAY_A);
+        return $result;
+    }
+
+    public function getUserOnline($id) {
+        global $db;
+
+        $userExist = "select count(*) from `ofUser` WHERE `username`='" . strtolower($id) . "' ";
+        $res1 = $db->get_results($userExist, ARRAY_A);
+        if ($res1[0]['count(*)']) {
+            $selectOffline = "select count(*) from `ofPresence` WHERE `username`='" . strtolower($id) . "' ";
+            $res = $db->get_results($selectOffline, ARRAY_A);
+            return $res[0]['count(*)'];
+        } else {
+            echo 1;
+            exit();
+        }
+    }
+
+    public function saveTimezone($data) {
+        global $db;
+        $query = "UPDATE `admin_database_info` SET `locale`= '" . $data['timezone'] . "' WHERE `email` = '" . $data['email'] . "' AND `is_active`=1";
+        $_SESSION['locale'] = $data['timezone'];
+        $db->query($query);
+        return true;
+        exit;
+    }
+
+    function setTrackingUpdate($usr) {
+        global $dbhost;
+        global $dbpassword;
+        global $dbuser;
+        $currentDate = date('Y-m-d H:i:s');
+        foreach ($usr as $value) {
+            if (strtotime($value['trackEnd']) < strtotime($currentDate)) {
+                $dbDetalis = explode('_', $value['uniqueCode']);
+                $dbUser = new ezSQL_mysql($dbuser, $dbpassword, $dbDetalis[0], $dbhost);
+                $trackingStatus = 'UPDATE `user_info` SET `cronTrackStatus` = 0 WHERE `uniqueCode` = "' . $value['uniqueCode'] . '"';
+                $dbUser->query($trackingStatus);
+                unset($dbUser);
+            }
+        }
+        return TRUE;
     }
 
 }

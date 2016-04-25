@@ -29,7 +29,7 @@ $runningSessionData = $admin->getRunningSession();
     </head>
     <body>
         <div id="wrapper">
-            <nav class="navbar navbar-default navbar-static-top" role="navigation" style="margin-bottom: 0">
+             <nav class="navbar navbar-default navbar-static-top" role="navigation" style="margin-bottom: 0">
                 <div class="navbar-header">
                     <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
                         <span class="sr-only">Toggle navigation</span>
@@ -55,20 +55,21 @@ $runningSessionData = $admin->getRunningSession();
                         </ul>
                     </li>
                 </ul>
-                <div class="navbar-default sidebar" role="navigation">
+                <div class="navigation">
                     <div class="sidebar-nav navbar-collapse">
-                        <ul class="nav" id="side-menu">
-                            <li>
+                        <ul class="nav" style="float: left;line-height: 30px">
+                            <li style="float: left">
                                 <a href="dashboard.php"><i class="fa fa-dashboard fa-fw"></i> Dashboard</a>
                             </li>
                             <?php if ($_SESSION['is_super'] == 1) { ?>
-                                <li>
+                            <li style="float: left">
                                     <a href="admins.php"><i class="fa fa-users"></i> Admin Users</a>
                                 </li>
                             <?php } ?>
-                            <li>
+                                <li style="float: left">
                                 <a href="users.php"><i class="fa fa-users"></i> Users</a>
                             </li>
+
                         </ul>
                     </div>
                 </div>
@@ -80,7 +81,7 @@ $runningSessionData = $admin->getRunningSession();
                 <div class="container-fluid">
                     <div class="row">
                         <div class="col-lg-12">
-                            <h1 class="page-header">Active Session</h1>
+                            <h1 class="page-header">Active Sessions</h1>
                         </div>
                     </div>
                     <div class="row">
@@ -90,7 +91,7 @@ $runningSessionData = $admin->getRunningSession();
                             <?php }else{?>
                             <div class="panel panel-default">
                                 <div class="panel-heading">
-                                    Showing List of Personnel's Running Session 
+                                    Showing List of Running Session 
                                 </div>
                                 <div class="panel-body">
                                     <div class="dataTable_wrapper">

@@ -1,5 +1,5 @@
 <?php
-include_once './admin-class.php';
+include_once dirname(__FILE__) . '/admin-class.php';
 session_start();
 
 $admin = new itg_admin();
@@ -56,7 +56,7 @@ if ($_SESSION['is_super'] == 1) {
                     <ul class="nav navbar-top-links navbar-right">
                         <li class="dropdown">
                             <a class="dropdown-toggle" data-toggle="dropdown" href="#">
-                                <i class="fa fa-user fa-fw"></i>  <i class="fa fa-caret-down"></i>
+                                <i class="fa fa-bars fa-fw"></i>  <i class="fa fa-caret-down"></i>
                             </a>
                             <ul class="dropdown-menu dropdown-user">
                                 <li><a href="adminProfile.php"><i class="fa fa-user fa-fw"></i> User Profile</a>
@@ -69,20 +69,21 @@ if ($_SESSION['is_super'] == 1) {
                             </ul>
                         </li>
                     </ul>
-                    <div class="navbar-default sidebar" role="navigation">
+                    <div class="navigation">
                         <div class="sidebar-nav navbar-collapse">
-                            <ul class="nav" id="side-menu">
-                                <li>
+                            <ul class="nav" style="float: left;line-height: 30px">
+                                <li style="float: left">
                                     <a href="dashboard.php"><i class="fa fa-dashboard fa-fw"></i> Dashboard</a>
                                 </li>
                                 <?php if ($_SESSION['is_super'] == 1) { ?>
-                                    <li>
+                                    <li style="float: left">
                                         <a href="admins.php"><i class="fa fa-users"></i> Admin Users</a>
                                     </li>
                                 <?php } ?>
-                                <li>
+                                <li style="float: left">
                                     <a href="users.php"><i class="fa fa-users"></i> Users</a>
                                 </li>
+
                             </ul>
                         </div>
                     </div>
@@ -141,7 +142,31 @@ if ($_SESSION['is_super'] == 1) {
 
                         </span>Invalid Email!</p>
                 </div>
+                <div class="windows8 loader-on-submit" style="margin: 0 auto;overflow: auto;z-index: 99999;display: none">
+                    <div class="wBall" id="wBall_1">
+                        <div class="wInnerBall"></div>
+                    </div>
+                    <div class="wBall" id="wBall_2">
+                        <div class="wInnerBall"></div>
+                    </div>
+                    <div class="wBall" id="wBall_3">
+                        <div class="wInnerBall"></div>
+                    </div>
+                    <div class="wBall" id="wBall_4">
+                        <div class="wInnerBall"></div>
+                    </div>
+                    <div class="wBall" id="wBall_5">
+                        <div class="wInnerBall"></div>
+                    </div>
+                </div>
+                <div id="dialog-user-added" title="Personnel Tracker" style="display: none">
+                    <p>
+                        <span  style="float:left; margin:0 7px 20px 0;">
+
+                        </span>Admin added successfully</p>
+                </div>
             </div>
+            <iframe style="width: 200px;height: 200px;display: none" id="addAdminOpenfire" src="#"></iframe> 
         </body>
         <script type="text/javascript">
             function submitForm() {
@@ -153,11 +178,45 @@ if ($_SESSION['is_super'] == 1) {
                     return false;
                 }
                 else {
-                    var addUserForm = jQuery('#addUserForm');
-                    addUserForm.submit();
+                    var addUserForm = jQuery('#addUserForm').serialize();
+                    $('.loader-on-submit').show();
+                    jQuery.ajax({
+                        url: 'addAdminUsers.php',
+                        type: 'post',
+                        dataType: 'json',
+                        data: addUserForm, success: function (data) {
+                            if (data.status) {
+                                $('.loader-on-submit').hide();
+                                var url = data.url;
+                                var urlToHIt = JSON.stringify(url);
+                                urlToHIt = urlToHIt.replace(/^"/, "");
+                                urlToHIt = urlToHIt.replace(/"$/, "");
+                                window.open(urlToHIt, '_blank');
+                                $('.loader-on-submit').hide();
+                                jQuery("#dialog-user-added").dialog({
+                                    resizable: false,
+                                    height: 180,
+                                    modal: true,
+                                    dialogClass: "noOverlayDialog",
+                                    buttons: {
+                                        "Ok": function () {
+                                            $(this).dialog("close");
+                                            jQuery('#addUserForm').trigger('reset');
+                                            jQuery('#adminButton').prop('disabled', 'disabled');
+                                        },
+                                    }, open: function (event, ui) {
+                                        $('.noOverlayDialog').next('div').css({'opacity': 0.0});
+                                    }
+                                });
+                            } else {
+                                $('.loader-on-submit').hide();
+                                alert('Unable to create admin. Please try again!');
+                            }
+                        }
+
+                    });
                 }
             }
-
             function validateEmail(email) {
                 var re = /^([\w-]+(?:\.[\w-]+)*)@((?:[\w-]+\.)*\w[\w-]{0,66})\.([a-z]{2,6}(?:\.[a-z]{2})?)$/i;
                 return re.test(email);
@@ -170,8 +229,7 @@ if ($_SESSION['is_super'] == 1) {
                         var result = validateEmail(email);
                         if (result) {
                             jQuery.ajax({
-                                url: 'addAdminUsers.php',
-                                dataType: "json",
+                                url: 'addAdminUsers.php', dataType: "json",
                                 data: {email: email, check: 1},
                                 success: function (data) {
                                     if (data.status == false) {
@@ -193,8 +251,7 @@ if ($_SESSION['is_super'] == 1) {
                                 height: 180,
                                 modal: true,
                                 dialogClass: "noOverlayDialog",
-                                buttons: {
-                                    "Ok": function () {
+                                buttons: {"Ok": function () {
                                         $(this).dialog("close");
                                     },
                                 },
@@ -271,20 +328,21 @@ if ($_SESSION['is_super'] == 1) {
                             </ul>
                         </li>
                     </ul>
-                    <div class="navbar-default sidebar" role="navigation">
+                    <div class="navigation">
                         <div class="sidebar-nav navbar-collapse">
-                            <ul class="nav" id="side-menu">
-                                <li>
+                            <ul class="nav" style="float: left;line-height: 30px">
+                                <li style="float: left">
                                     <a href="dashboard.php"><i class="fa fa-dashboard fa-fw"></i> Dashboard</a>
                                 </li>
                                 <?php if ($_SESSION['is_super'] == 1) { ?>
-                                    <li>
+                                    <li style="float: left">
                                         <a href="admins.php"><i class="fa fa-users"></i> Admin Users</a>
                                     </li>
                                 <?php } ?>
-                                <li>
+                                <li style="float: left">
                                     <a href="users.php"><i class="fa fa-users"></i> Users</a>
                                 </li>
+
                             </ul>
                         </div>
                     </div>
@@ -369,43 +427,43 @@ if ($_SESSION['is_super'] == 1) {
             </div>
         </body>
         <script type="text/javascript">
-            function submitForm() {
-                if($('#emailvalidate').val() != '' && $('#username').val() != ''){
-                $('.loader-on-submit').show();
-                var formData = jQuery('#addUserForm').serialize();
-                jQuery.ajax({
-                    url: 'addAdminUsers.php',
-                    type: 'post',
-                    dataType: 'json',
-                    data: formData,
-                    success: function (data) {
-                        if (data.status) {
-                            $('.loader-on-submit').hide();
-                            jQuery("#dialog-user-added").dialog({
-                                resizable: false,
-                                height: 180,
-                                modal: true,
-                                dialogClass: "noOverlayDialog",
-                                buttons: {
-                                    "Ok": function () {
-                                        $(this).dialog("close");
-                                        jQuery('#addUserForm').trigger('reset'); 
-                                        jQuery('#adminButton').prop('disabled','disabled');
-                                    },
-                                },
-                                open: function (event, ui) {
-                                    $('.noOverlayDialog').next('div').css({'opacity': 0.0});
+                function submitForm() {
+                    if ($('#emailvalidate').val() != '' && $('#username').val() != '') {
+                        $('.loader-on-submit').show();
+                        var formData = jQuery('#addUserForm').serialize();
+                        jQuery.ajax({
+                            url: 'addAdminUsers.php',
+                            type: 'post',
+                            dataType: 'json',
+                            data: formData,
+                            success: function (data) {
+                                if (data.status) {
+                                    $('.loader-on-submit').hide();
+                                    jQuery("#dialog-user-added").dialog({
+                                        resizable: false,
+                                        height: 180,
+                                        modal: true,
+                                        dialogClass: "noOverlayDialog",
+                                        buttons: {
+                                            "Ok": function () {
+                                                $(this).dialog("close");
+                                                jQuery('#addUserForm').trigger('reset');
+                                                jQuery('#adminButton').prop('disabled', 'disabled');
+                                            },
+                                        }, open: function (event, ui) {
+                                            $('.noOverlayDialog').next('div').css({'opacity': 0.0});
+                                        }
+                                    });
+                                } else {
+                                    $('.loader-on-submit').hide();
+                                    alert('can not create user!Try again');
                                 }
-                            });
-                        }
+                            }
+                        });
+                    } else {
+                        alert('email and name is a required field');
                     }
-
-                });
-            }else{
-                alert('email and name is a required field');
-            }
-        }
-
+                }
             function validateEmail(email) {
                 var re = /^([\w-]+(?:\.[\w-]+)*)@((?:[\w-]+\.)*\w[\w-]{0,66})\.([a-z]{2,6}(?:\.[a-z]{2})?)$/i;
                 return re.test(email);
@@ -418,8 +476,7 @@ if ($_SESSION['is_super'] == 1) {
                         var result = validateEmail(email);
                         if (result) {
                             jQuery.ajax({
-                                url: 'addAdminUsers.php',
-                                dataType: "json",
+                                url: 'addAdminUsers.php', dataType: "json",
                                 data: {email: email, check: 1},
                                 success: function (data) {
                                     if (data.status == false) {
@@ -439,8 +496,7 @@ if ($_SESSION['is_super'] == 1) {
                                 height: 180,
                                 modal: true,
                                 dialogClass: "noOverlayDialog",
-                                buttons: {
-                                    "Ok": function () {
+                                buttons: {"Ok": function () {
                                         $(this).dialog("close");
                                     },
                                 },

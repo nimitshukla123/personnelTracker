@@ -58,20 +58,21 @@ if ($_POST) {
                         </ul>
                     </li>
                 </ul>
-                <div class="navbar-default sidebar" role="navigation">
+                <div class="navigation">
                     <div class="sidebar-nav navbar-collapse">
-                        <ul class="nav" id="side-menu">
-                            <li>
-                                <a href="dashboard.php"><i class="fa fa-dashboard fa-fw"></i>Dashboard</a>
+                        <ul class="nav" style="float: left;line-height: 30px">
+                            <li style="float: left">
+                                <a href="dashboard.php"><i class="fa fa-dashboard fa-fw"></i> Dashboard</a>
                             </li>
                             <?php if ($_SESSION['is_super'] == 1) { ?>
-                                <li>
+                            <li style="float: left">
                                     <a href="admins.php"><i class="fa fa-users"></i> Admin Users</a>
                                 </li>
                             <?php } ?>
-                            <li>
+                                <li style="float: left">
                                 <a href="users.php"><i class="fa fa-users"></i> Users</a>
                             </li>
+
                         </ul>
                     </div>
                 </div>
@@ -83,7 +84,7 @@ if ($_POST) {
                 <div class="container-fluid">
                     <div class="row">
                         <div class="col-lg-12">
-                            <h1 class="page-header">Send Mail</h1>
+                            <h1 class="page-header">Send Email</h1>
                         </div>
                     </div>
                     <div class="row">
@@ -97,19 +98,19 @@ if ($_POST) {
                                             <table  style="line-height: 30px; float: left;width: 100%;height: 50%">
                                                 <tr>
                                                     <td><label>Name:</label></td>
-                                                    <td><input type="text" name="name"  value="<?php echo $_SESSION['data']['name'] ?>"/></td>
+                                                    <td><input style="width: 30%" type="text" name="name"  value="<?php echo $_SESSION['data']['name'] ?>"/></td>
                                                 </tr>
                                                 <tr>
-                                                    <td><label>Email:</label></td>
-                                                    <td><input type="text" name="email" readonly="" value="<?php echo $_SESSION['data']['email'] ?>"/></td>
+                                                    <td><label>From:</label></td>
+                                                    <td><input style="width: 30%" type="text" name="email" readonly="" value="<?php echo $_SESSION['data']['email'] ?>"/></td>
                                                 </tr>
                                                 <tr>
                                                     <td><label>Company:</label></td>
-                                                    <td><input type="text" name="company"  value="<?php echo $_SESSION['data']['company'] ?>"/></td>
+                                                    <td><input style="width: 30%" type="text" name="company"  value="<?php echo $_SESSION['data']['company'] ?>"/></td>
                                                 </tr>
                                                 <tr>
-                                                    <td><label>Ticket:</label></td>
-                                                    <td><textarea name="ticket" cols="20" rows="3"></textarea></td>
+                                                    <td><label>Feedback:</label></td>
+                                                    <td><textarea style="width: 30%" name="ticket" cols="20" rows="3"></textarea></td>
                                                 </tr>
                                                 <tr>
                                                     <td colspan="2" style="padding-left: 200px"><input type="button" onclick="submitTicket();" value="submit"></input></td> 

@@ -7,75 +7,74 @@
 var ServerManager = {
     myJid: null,
     connection: null,
-    onError: function(msg) {
+    onError: function (msg) {
     },
-    onAuthenticate: function() {
+    onAuthenticate: function () {
     },
-    onConnect: function() {
+    onConnect: function () {
     },
-    onConnected: function() {
+    onConnected: function () {
     },
-    onAddUser: function(jid) {
+    onAddUser: function (jid) {
     },
-    onPresence: function() {
+    onPresence: function () {
     },
-    onUserListUpdate: function(jid, name, group, add) {
+    onUserListUpdate: function (jid, name, group, add) {
     },
-   
-    authError: function() {
+    authError: function () {
     },
-    plotData: function() {
+    plotData: function () {
     },
-    onDisconnected: function() {
+    onDisconnected: function () {
     },
-    onSearchResult: function(users) {
+    onSearchResult: function (users) {
     },
-    onChataHisDataRec: function(chatData, callback) {
+    onChataHisDataRec: function (chatData, callback) {
     },
 //    sendMessage:function(){},
     // Inititalize Roster to get all entries......
-   initiateXmpp: function() {
-              
+    initiateXmpp: function () {
+
         var iq = $iq({type: 'get'}).c('query', {xmlns: 'jabber:iq:roster'});
 //        var pre=$pres();
         var pre = $pres().c('status', 'Online').up().c('priority', '1');
         this.connection.send(pre);
         this.connection.sendIQ(iq, this.initRoster);
-        this.connection.addHandler(this.on_message, null, "message","chat");
+        this.connection.addHandler(this.on_message, null, "message", "chat");
         this.connection.addHandler(this.on_presence, null, "presence");
     },
-    connect: function(boshUrl, server, usr, pwd, rosterListid, conn) {
+    connect: function (boshUrl, server, usr, pwd, rosterListid, conn) {
 //        ServetManager.server = server;
         if (conn === undefined || conn === null) {
-          
+
             conn = new Openfire.Connection(boshUrl);
         }
         this.connection = conn;
         if (conn) {
-            conn.connect(usr, pwd, function(status) {
-//                console.log('connected....');
-               myJid = usr;
-               ServerManager.fireStatusEvent(status);
+            conn.connect(usr, pwd, function (status) {
+                console.log('connected....');
+                myJid = usr;
+                ServerManager.fireStatusEvent(status);
             });
         }
 
     },
-    init: function(boshUrl, connData, conn, rosterListid) {
+    init: function (boshUrl, connData, conn, rosterListid) {
 
         if (conn === undefined || conn === null) {
             conn = new Openfire.Connection(boshUrl);
         }
         this.connection = conn;
         if (conn) {
-            conn.attach(connData.jid, connData.sid, connData.rid, function(status) {
-                
+            conn.attach(connData.jid, connData.sid, connData.rid, function (status) {
+
             });
         }
     },
-    disconnect: function() {
+    disconnect: function () {
         this.connection.disconnect();
     },
-    fireStatusEvent: function(status) {
+    fireStatusEvent: function (status) {
         //    console.log("Firing Event:"+status );
         var Status = Strophe.Status;
         switch (status) {
@@ -93,7 +92,7 @@ var ServerManager = {
                 this.onConnect();
                 break;
             case Status.AUTHENTICATING:
-                                this.pingHost();
+                this.pingHost();
                 this.onAuthenticate();
                 break;
             case Status.CONNECTED:
@@ -115,27 +114,27 @@ var ServerManager = {
                 break;
         }
     },
-    getConnection: function() {
+    getConnection: function () {
         return this.connection;
     },
-    getPresence: function() {
+    getPresence: function () {
         return this.presence;
     },
-    setPresence: function() {
+    setPresence: function () {
     },
-    pingHost: function() {
+    pingHost: function () {
         var domain = Strophe.getDomainFromJid(this.connection.jid);
         this.sendPing(domain);
     },
-    sendPing: function(to) {
+    sendPing: function (to) {
 
         $(document).trigger("connected", {to: to});
     },
-    get: function(handler, jid) {
+    get: function (handler, jid) {
         var image = this.connection.vcard.get(handler, jid);
         //    console.log(image);
     },
-    updateMyStatus: function(status_text, show) {
+    updateMyStatus: function (status_text, show) {
         var pres;
 
         if (status_text.trim() != '') {
@@ -149,29 +148,29 @@ var ServerManager = {
             this.connection.send(pres);
         }
     },
-    
-    result: function(aaa) {
+    result: function (aaa) {
         console.log(aaa);
     },
-    getMyJid: function() {
+    getMyJid: function () {
         return myJid;
     },
-    sendChatMessage: function(jid, msg) {
+    sendChatMessage: function (jid, msg) {
         var message = $msg({to: jid, type: 'chat'}).c('body').t(msg);
         this.connection.send(message);
     },
-    on_presence: function(presence) {
+    on_presence: function (presence) {
         var ptype = $(presence).attr('type');
         var from = $(presence).attr('from');
         var presenceJid = Strophe.getBareJidFromJid(from);
         var statusText = $(presence).find('status').text();
         var showText = $(presence).find('show').text();
-        console.log(presenceJid);
-        console.log(statusText);
-userStatus(presenceJid,statusText);
+        if (statusText == '' && presence !== '' || presence != null) {
+            statusText = 'Online';
+        }
+        userStatus(presenceJid, statusText);
         return true;
     },
-    on_message: function(message) {
+    on_message: function (message) {
 //        console.log("Comming MSG");
 //     //   ServerManager.initiateXmpp();
 //        console.log(message.toString());
@@ -182,7 +181,7 @@ userStatus(presenceJid,statusText);
     }
 };
 
-$(document).bind("connected", function(e, data) {
+$(document).bind("connected", function (e, data) {
     ServerManager.initiateXmpp();
     var ping = $iq({to: data.to, type: "get", id: "ping1"}).c("ping", {xmlns: "urn:xmpp:ping"});
     ServerManager.connection.send(ping);

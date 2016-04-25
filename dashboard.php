@@ -4,6 +4,9 @@ $admin = new itg_admin();
 if (!$_SESSION['admin_login']) {
     header('Location: index.php');
 }
+if ($_POST['saveTime'] == 1) {
+    $admin->saveTimezone($_POST);
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -16,16 +19,19 @@ if (!$_SESSION['admin_login']) {
         <title>Personnel Tracker</title>
         <link href="bower_components/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
         <link href="bower_components/metisMenu/dist/metisMenu.min.css" rel="stylesheet">
-        <link href="dist/css/timeline.css" rel="stylesheet">
         <link href="dist/css/sb-admin-2.css" rel="stylesheet">
-        <link href="bower_components/morrisjs/morris.css" rel="stylesheet">
+        <link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
         <link href="bower_components/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
-        <script src="js/jQuery-v1.9.1.js" type="text/javascript"></script>
-        <script src="js/jquery.ui.widget.min.js" type="text/javascript"></script>
+        <script src="bower_components/datePicker/jquery.js"></script>
         <script src="js/strophe.js" type="text/javascript"></script>
         <script src="js/strophe-openfire.js" type="text/javascript"></script>
         <script src="js/ServerManager.js"></script>
+        <script src="bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+        <script src="dist/js/jstz.min.js"/>
+        <script src="bower_components/metisMenu/dist/metisMenu.min.js"></script>
+        <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
     </head>
+
     <body>
         <div id="wrapper">
             <nav class="navbar navbar-default navbar-static-top" role="navigation" style="margin-bottom: 0">
@@ -39,7 +45,6 @@ if (!$_SESSION['admin_login']) {
                     <a class="navbar-brand" href="dashboard.php">Personnel Tracker</a>
                 </div>
                 <ul class="nav navbar-top-links navbar-right">
-
                     <li class="dropdown">
                         <a class="dropdown-toggle" data-toggle="dropdown" href="#">
                             <i class="fa fa-bars fa-fw"></i>  <i class="fa fa-caret-down"></i>
@@ -55,21 +60,20 @@ if (!$_SESSION['admin_login']) {
                         </ul>
                     </li>
                 </ul>
-                <div class="navbar-default sidebar" role="navigation">
+                <div class="navigation">
                     <div class="sidebar-nav navbar-collapse">
-                        <ul class="nav" id="side-menu">
-                            <li>
+                        <ul class="nav" style="float: left;line-height: 30px">
+                            <li style="float: left">
                                 <a href="dashboard.php"><i class="fa fa-dashboard fa-fw"></i> Dashboard</a>
                             </li>
                             <?php if ($_SESSION['is_super'] == 1) { ?>
-                                <li>
+                                <li style="float: left">
                                     <a href="admins.php"><i class="fa fa-users"></i> Admin Users</a>
                                 </li>
                             <?php } ?>
-                            <li>
+                            <li style="float: left">
                                 <a href="users.php"><i class="fa fa-users"></i> Users</a>
                             </li>
-
                         </ul>
                     </div>
                 </div>
@@ -147,30 +151,30 @@ if (!$_SESSION['admin_login']) {
                             </div>
                         </div>
                     <?php } ?>
-                     <?php  if ($_SESSION['is_super'] == 0) { ?>
-                    <div class="col-lg-3 col-md-6">
-                        <div class="panel panel-yellow">
-                            <div class="panel-heading">
-                                <div class="row">
-                                    <div class="col-xs-3">
-                                        <i class="fa fa-mobile fa-5x"></i>
-                                    </div>
-                                    <div class="col-xs-9 text-right">
-                                        <div class="huge"><?php echo $admin->getRunningSessionCount() ?></div>
-                                        <div>Active sessions</div>
+                    <?php if ($_SESSION['is_super'] == 0) { ?>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="panel panel-yellow">
+                                <div class="panel-heading">
+                                    <div class="row">
+                                        <div class="col-xs-3">
+                                            <i class="fa fa-mobile fa-5x"></i>
+                                        </div>
+                                        <div class="col-xs-9 text-right">
+                                            <div class="huge"><?php echo $admin->getRunningSessionCount() ?></div>
+                                            <div>Active sessions</div>
+                                        </div>
                                     </div>
                                 </div>
+                                <a href="runningSession.php">
+                                    <div class="panel-footer">
+                                        <span class="pull-left">View Details</span>
+                                        <span class="pull-right"><i class="fa fa-arrow-circle-right"></i></span>
+                                        <div class="clearfix"></div>
+                                    </div>
+                                </a>
                             </div>
-                            <a href="runningSession.php">
-                                <div class="panel-footer">
-                                    <span class="pull-left">View Details</span>
-                                    <span class="pull-right"><i class="fa fa-arrow-circle-right"></i></span>
-                                    <div class="clearfix"></div>
-                                </div>
-                            </a>
                         </div>
-                    </div>
-                     <?php } ?>
+                    <?php } ?>
                     <div class="col-lg-3 col-md-6">
                         <div class="panel panel-red">
                             <div class="panel-heading">
@@ -253,7 +257,7 @@ if (!$_SESSION['admin_login']) {
                         <div class="col-lg-6">
                             <div class="panel panel-default">
                                 <div class="panel-heading">
-                                   Recently Added User
+                                    Recently Added User's (24hrs)
                                 </div>
                                 <div class="panel-body">
                                     <div class="table-responsive">
@@ -263,7 +267,7 @@ if (!$_SESSION['admin_login']) {
                                                     <th>#</th>
                                                     <th>Name</th>
                                                     <th>Email</th>
-                                                    <th>Status</th>
+                                                    <th>Company</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -276,7 +280,7 @@ if (!$_SESSION['admin_login']) {
                                                         <td><?php echo $i; ?></td>
                                                         <td><?php echo $value['name']; ?></td>
                                                         <td><?php echo $value['email']; ?></td>
-                                                        <td><?php echo $value['is_active'] == 1 ? 'Active' : 'Inactive'; ?></td>
+                                                        <td><?php echo $value['company']; ?></td>
                                                     </tr>
                                                     <?php
                                                     ++$i;
@@ -289,23 +293,25 @@ if (!$_SESSION['admin_login']) {
                             </div>
                         </div>
                     <?php } ?>
-                    <?php  if ($_SESSION['is_super'] == 0) { ?>
-                    <div class="col-lg-6">
-                        <div class="panel panel-default">
-                            <div class="panel-heading">
-                                Recent Sessions
-                            </div>
-                            <div class="panel-body">
-                                <div class="table-responsive">
-                                    <table class="table table-striped table-bordered table-hover">
-                                        <thead>
-                                            <tr>
-                                                <th>#</th>
-                                                <th>Id</th>
-                                                <th>Email</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
+                    <?php if ($_SESSION['is_super'] == 0) { ?>
+                        <div class="col-lg-6">
+                            <div class="panel panel-default">
+                                <div class="panel-heading">
+                                    Recent Expired Sessions (24hrs)
+                                </div>
+                                <div class="panel-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-striped table-bordered table-hover">
+                                            <thead>
+                                                <tr>
+                                                    <th>#</th>
+                                                    <th>Id</th>
+                                                    <th>Name</th>
+                                                    <th>Email</th>
+                                                    <th>Company</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
                                                 <?php
                                                 $data = $admin->getRecentSession();
                                                 $i = 1;
@@ -314,35 +320,43 @@ if (!$_SESSION['admin_login']) {
                                                     <tr>
                                                         <td><?php echo $i; ?></td>
                                                         <td><?php echo $value['grcid']; ?></td>
+                                                        <td><?php echo $value['name']; ?></td>
                                                         <td><?php echo $value['email']; ?></td>
+                                                        <td><?php echo $value['company']; ?></td>
                                                     </tr>
                                                     <?php
                                                     ++$i;
                                                 }
                                                 ?>
                                             </tbody>
-                                    </table>
+                                        </table>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    <?php }?>
+                    <?php } ?>
                 </div>
             </div>
         </div>
-<!--        <script src="bower_components/jquery/dist/jquery.min.js"></script>-->
-        <script src="bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
-        <script src="bower_components/metisMenu/dist/metisMenu.min.js"></script>
-        <script src="bower_components/raphael/raphael-min.js"></script>
-        <script src="bower_components/morrisjs/morris.min.js"></script>
-        <script src="js/morris-data.js"></script>
-        <script src="dist/js/sb-admin-2.js"></script>
         <?php if ($_SESSION['is_super'] == 0) { ?>
             <script>
-                                    ServerManager.connect('http://52.24.255.248:7070', 'personneltracker', '<?php echo $_SESSION['data']['admindatabase'] . '@personneltracker' ?>', '<?php echo $_SESSION['data']['databasepassword'] ?>', 'roster_entry');
+                ServerManager.connect('http://54.191.56.95:7070', 'personneltracker', '<?php echo $_SESSION['data']['admindatabase'] . '@personneltracker' ?>', '<?php echo $_SESSION['data']['databasepassword'] ?>', 'roster_entry');
             </script>
 
         <?php } ?>
+        <script type="text/javascript">
+            var timezone = jstz.determine();
+            var localetimezone = (timezone.name());
+            $.ajax({
+                url: 'dashboard.php',
+                type: 'post',
+                dataType: 'json',
+                data: {saveTime: 1, timezone: localetimezone,email:'<?php echo $_SESSION['data']['email']?>'},
+                success: function (result) {
+                    cosole.log('timexone updated');
+                }
+            });
+        </script>
     </body>
 
 </html>

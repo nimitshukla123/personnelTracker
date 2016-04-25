@@ -21,7 +21,6 @@ body {
 @media(min-width:768px) {
     #page-wrapper {
         position: inherit;
-        margin: 0 0 0 250px;
         padding: 0 30px;
         border-left: 1px solid #e7e7e7;
     }
@@ -29,6 +28,21 @@ body {
 
 .navbar-top-links {
     margin-right: 0;
+}
+
+.user-details h5{
+    float: left;
+    line-height: 30px;
+    padding-right: 20px;
+    padding-left: 30px;
+}
+
+.userProfile td{
+    float: left;
+    padding: 0 0 20px 30px;
+}
+.user-details a.active{
+    color: red;
 }
 
 .navbar-top-links li {
@@ -707,5 +721,27 @@ table.dataTable thead .sorting:after {
 		-moz-transform: rotate(900deg);
 	}
 }
-
  .required:after { content:" *";color: red; }
+ .startbtn {
+  font-family: Arial;
+  color: #ffffff;
+  font-size: 14px;
+  background: #118704;
+  padding: 8px 16px 8px 16px;
+  text-decoration: none;
+  float: left;
+  margin-bottom: 5px;
+}
+.stopbtn {
+  font-family: Arial;
+  color: #ffffff;
+  font-size: 14px;
+  background: #c90c0c;
+   padding: 8px 16px 8px 16px;
+  text-decoration: none;
+  clear: left;
+}
+.tracking-details-form{
+    padding-left: 250px;
+    margin-top: -80px;
+}

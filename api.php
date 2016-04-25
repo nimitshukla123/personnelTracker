@@ -8,7 +8,14 @@
 error_reporting(0);
 include_once './db.php';
 if ($_POST['op'] == 'getUserDetails' && isset($_POST['secretCode'])) {
-    getUserData($_POST['secretCode']);
+    if($_POST['deviceToken'] == '' || $_POST['deviceToken'] == NULL){
+        $_POST['deviceToken'] = '';
+    }
+    if($_POST['deviceType'] == '' || $_POST['deviceType'] == NULL){
+        $_POST['deviceType'] = '';
+    }
+    
+    getUserData($_POST['secretCode'],$_POST['deviceToken'],$_POST['deviceType']);
 } else {
     $result['status'] = FALSE;
     $result['message'] = 'secret code not found';
@@ -16,7 +23,7 @@ if ($_POST['op'] == 'getUserDetails' && isset($_POST['secretCode'])) {
     exit();
 }
 
-function getUserData($secreatCode) {
+function getUserData($secreatCode,$token,$device) {
     if (isset($secreatCode)) {
         global $dbhost;
         global $dbuser;
@@ -29,7 +36,7 @@ function getUserData($secreatCode) {
         $result = $userdb->get_results($query, ARRAY_A);
         if (!empty($result)) {
             if ($result[0]['deviceId'] == '' && $deviceId !== '') {
-                $updateDeviceIdQuery = "UPDATE `user_info` SET `deviceId`= '" . $deviceId . "' WHERE `uniqueCode`= '" . $secreatCode . "'";
+                $updateDeviceIdQuery = "UPDATE `user_info` SET `deviceId`= '" . $deviceId . "',`token`= '" . $token . "',`devicetype`= '" . $device . "' WHERE `uniqueCode`= '" . $secreatCode . "'";
                 $userdb->query($updateDeviceIdQuery);
                 $query1 = "SELECT `contactno` FROM `admin_database_info` WHERE `admindatabase`= '$code[0]" . "'";
                 $result1 = $db->get_results($query1, ARRAY_A);
